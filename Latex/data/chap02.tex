@@ -197,5 +197,57 @@ $$ S(I) = \frac{\sum_{i=1}^{P}Con(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\sum_{
   \label{fig:chap2:comp2}
 \end{figure}
 为了定量衡量算法的准确性，将显著性检测结果进行二值化后得到的显著性对象与数据集中提供的正确结果进行对比，本文采用通用的F-Measure值指标来比较算法准确性，其定义为：
+$$F_{\beta} = \frac{(1+\beta^2)Precision \times Recall}{\beta^2 \times Precision + Recall}$$
+其中$Precision$为精度，$Recall$表示召回率，$\beta^2=0.3$. \par
+
+在实验中，为了消除二值化阈值对结果的影响，将阈值设定为在0到255之间变化，绘制F-Measure随阈值变化的曲线，见图~\ref{fig:sub:ecssdFCurve}和图~\ref{fig:sub:asdFCurve}，同时图~\ref{fig:sub:ecssdAvg}，~\ref{fig:sub:asdAVG}统计了各方法得到的F-Measure平均值和最大值。通过比较可以看出，本章算法在ECSSD数据库中的F-Measure平均值和最大值均优于其它算法，在ASD数据库中得到的平均F-Measure高于GMR算法外的其它算法。本文算法得到的F-Measure曲线较为扁平，即F-Measure取值受阈值影响较小。当阈值在128附近时F-Measure可以得到最大值。比较两个数据集，可以发现ASD数据集中的部分图像背景复杂度较低，因此各算法在ASD数据集上的测试结果均优于ECSSD数据集上的结果。由于本文算法的结果是通过区域合并得到的，只有超像素级精度，这使得本文算法在ASD数据库中得到的结果的精度要略低于GMR，RC等算法。 \par
+$MAE$是另一个衡量显著性区域检测结果准确性的指标，其定义为：
+$$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$分别为图像的宽和高，$S$为显著性检测结果，$G$为正确值，两者均归一化在[0,1]之间。MAE值越低说明显著性检测误差越小，图~\ref{fig:sub:MAERst}是各算法MAE值在两个数据库中的比较结果。本文算法同样在ECSSD数据库中优于其它算法，在ASD数据库中略高于MAE最低的GMR算法。\par
+\begin{figure}[h]
+  \centering%
+  \subcaptionbox{F-Measure曲线\label{fig:sub:ecssdCurve}} %标题的长度，超过则会换行，如下一个小图。
+    {\includegraphics[width=0.45\textwidth]{ECSSD_FCurve}}%
+ %\hspace{1em}%
+  \subcaptionbox{平均F-Measure\label{fig:sub:ecssdAvg}}
+      {\includegraphics[width=0.45\textwidth]{ECSSD_FBar.png}}
+  \caption{ECSSD数据库F-Measure值比较}
+  \label{fig:ECSSDRst}
+\end{figure}
+
+\begin{figure}[h]
+  \centering%
+  \subcaptionbox{F-Measure曲线\label{fig:sub:asdCurve}} %标题的长度，超过则会换行，如下一个小图。
+    {\includegraphics[width=0.45\textwidth]{ASD_FCurve}}%
+ %\hspace{1em}%
+  \subcaptionbox{平均F-Measure\label{fig:sub:asdAvg}}
+      {\includegraphics[width=0.45\textwidth]{ASD_FBar.png}}
+  \caption{ASD数据库F-Measure值比较}
+  \label{fig:ASDRst}
+\end{figure}
+
+\begin{figure}[h]
+  \centering%
+  \subcaptionbox{ECSSD数据集结果\label{fig:sub:ecssdMAE}} %标题的长度，超过则会换行，如下一个小图。
+    {\includegraphics[width=0.45\textwidth]{ECSSD_MAE.png}}%
+ %\hspace{1em}%
+  \subcaptionbox{ASD数据集结果\label{fig:sub:asdMAE}}
+      {\includegraphics[width=0.45\textwidth]{ASD_MAE.png}}
+  \caption{算法MAE比较}
+  \label{fig:MAERst}
+\end{figure}
+
+部分算法的速度比较见表1.所列数据在配备Intel i7 3.5GHz CPU，16GB RAM的电脑上测得，参与比较的算法均用C++语言实现，其中CSH,RC和GMR算法均使用作者公开的代码进行测试。ASD数据库和ECSSD数据库中图像大小平均约为400×300，表中所列时间为处理每幅图像所用的平均时间。本文算法的速度相比RC和GMR算法稍快,比CSH算法快4倍左右。\par
+
+
+虽然本文算法可以处理部分复杂背景的情况,但在处理背景连续性较差的图像时效果较差,主要原因是在区域合并的过程中会将前景区域错误的合并到背景中,从而无法提取到正确的前景.例如,在图8中,前两列为输入图像和正确前景,后三列分别为本文算法第一阶段,第二阶段合并结果以及最终提取的显著区域结果.由于这两幅图像中的背景部分十分复杂,并不具备本文假设的连续性,因此在区域合并时误将前景区域合并到了背景中,导致算法失败.
+ \begin{figure}[h]
+  \centering%
+      {\includegraphics[width=0.9\textwidth]{fail.png}}
+
+  \caption{本文算法部分失败例子}
+  \label{fig:chap2:comp1}
+\end{figure}
+
 
 \section{本章小结}
+本文以将图像分为显著性对象和背景2个区域为目标,提出了一种显著性引导的区域合并算法.由于在区域合并的不同阶段采取了不同的合并策略,本文算法能有效的防止在合并过程中将前景显著性对象错误的合并到背景区域.为了得到显著性对象,本文利用背景线索进行区域显著性分析,不断将非显著性区域合并到背景区域.将合并过程中得到的非背景区域作为候选显著性区域,通过加权平均的方式得到最终结果.在2个公开数据集上测试了本文所提算法,实验结果证明了本文所提算法的有效性.在主要是自然图像构成,难度较大的ECSSD数据集上的实验中,本文算法的准确度和误差指标均优于其它算法.本文算法简单直观,且效率高,易于实现.针对背景连续性不足的图像,本文算法无法有效的通过区域合并将背景部分合并在一起,同时可能会将前景错误的合并到背景中. 为解决这一问题,在下一步的工作中将考虑引入色彩相似性之外的其它度量方式以及多尺度分析方法来更好的评估图像背景区域之间的相似性.
