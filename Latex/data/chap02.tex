@@ -8,7 +8,7 @@
 图像显著性区域检测是近年来计算机视觉和图像处理领域的研究热点之一~\cite{saliencySurvey}。该技术的目标是快速定位图像中显著性对象，可以广泛应用于目标识别，基于内容的图像编辑以及图像检索等应用中。早期的显著性检测算法~\cite{itti}依据视觉感知理论，采用自底向上方法预测人眼观察图像时的焦点(Fixation)，最终得到一系列离散的圆点形状的显著性区域预测结果。然而，这类方法效率和准确度均较低，且无法得到显著性对象的准确边界，实际应用范围受限。随后，为了实现提前显著性对象的准确边界，研究人员提出了一系列数据驱动，自底向上的显著性区域检测算法~\cite{Achanta08,ChengPAMI,ufo,Yan2014Hierarchical}，大大提高了显著性对象检测精度以及计算速度。目前这类算法均可以较为准确的提取自然图像中包含的显著性对象，实现显著性对象与背景的分离。\par
 据文献~\inlinecite{Borji2015Salient}报道，在这些算法中，基于图像区域的算法性能更出色。基于区域的显著性检测算法首先用超像素~\cite{SLIC}、基于图的图像分割算法~\cite{graphseg}等图像分割方法将图像分为若干个小区域，随后以区域为单位进行显著性计算。由于在区域分割时考虑了像素在色彩以及空间域的连续性，分割后的区域内像素具有很好的齐次性，且大部分区域之间的边界与图像边缘吻合。 相比于基于像素的算法, 区域分割处理在保持显著性对象边界的同时，可以利用区域颜色直方图更准确的对区域内的颜色对比度进行量化。另外,以区域为单位计算大大降低了运算量。\par
 当前大部分已有的图像显著性检测算法的出发点均是根据显著性区域的特点，例如对比度高~\cite{ChengPAMI}、处在相机焦点上~\cite{ufo}等，定义区域显著性模型以计算每个像素的显著性水平。然而，自然图像中可能包含各种类型的显著性对象，单纯用这些显著性对象的线索仍然无法处理所有情况。如图~\ref{fig:saliencyCom}所示，(a)为输入图像，(b)、(c)、(d)分别为CSH算法~\cite{Yan2014Hierarchical}、RC算法~\cite{ChengPAMI}，和本章算法的结果，(e)为正确结果。图~\ref{fig:saliencyCom}表明，当输入图像中对象和背景的色彩分布较为接近(图~\ref{fig:saliencyCom}中第一行和第二行)，或者背景复杂度较高(第三行)时RC和CSH算法均无法有效检测出显著性对象。
-\begin{figure}[h]
+\begin{figure}[htb]
   \centering%
       {\includegraphics[width=0.9\textwidth]{ch02fig1.png}}\\
 (a)\quad\quad\quad\quad\quad
@@ -33,15 +33,16 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \subsection{图像区域合并}
 \label{sec:regionMerging}
 图像区域合并是指根据图像区域之间的相似性，逐渐将相似的区域合并在一起的过程，常用于图像分割等应用中。Richard~\cite{Richard2004Statistical}提出了一种基于统计的区域合并的提醒分割算法，利用图像统计特许确定需要合并的区域以及合并的顺序。在算法的初始阶段，每个像素表示一个区域。以相邻区域间颜色的差值的升序进行排序。在合并过程中，按此顺序将区域间颜色差距在门限之内的区域进行合并，直到剩余的区域数量达到合并要求。文献~\inlinecite{Xiao2015Complexity}提出了一种复杂度自适应的图像区域距离以衡量图像区域的相似性，并以之为基础评估区域间的相似性。在合并时，优先合并相似区域。在区域合并完成后，根据区域中包含边缘信息的来评估区域中包含对象的可能性(objectness)。文献~\inlinecite{SelectiveSearch}中提出了一种基于贪心算法的图像区域合并方法，该方法不断合并所有邻居区域中最接近的两个区域，直到将整幅图像合并为一个区域。上述区域合并方法作为预处理方法用于对象识别和显著性区域检测算法中取得了不错的效果。但上述方法均在区域合并过程中均始终采用同一策略，没有考虑到区域合并过程中不同阶段的不同特点，容易将属于对象的像素合并到背景区域。\par
-如图~\ref{fig:rm}所示，图~\ref{fig:sub:img}为输入图像，其中水面上划船的人为显著性前景对象。分别利用文献~\inlinecite{Richard2004Statistical}、~\inlinecite{Xiao2015Complexity}所提出的图像区域合并算法对输入图像进行分割，得到结果如图~\ref{fig:sub:srm}和图~\ref{fig:sub:cadm}所示。输入图像被分为9个区域，分别用不同的随机颜色表示。从图中可以看出，当分割进行到此阶段时，文献~\inlinecite{Richard2004Statistical}、~\inlinecite{Xiao2015Complexity}算法会将前景对象合并到背景区域中。其中图~\ref{fig:sub:cadm}中结果更为明显，划船人被分割到多个区域中。出现这种情况的主要原因是在合并过程中随着区域逐渐扩大区域间的相似度越来越高，如果在合并时只考虑区域间在色彩及空间上的相似度则很容易将属于前景区域与属于背景的区域合并到一起。另外，前景对象一般具有连续和紧凑的特点，即属于前景的对象的空间分布较为集中。如果在合并时仅允许相邻的区域进行合并~\cite{SelectiveSearch}可以在一定程度上防止前景区域合并到背景区域。但是考虑到前景对象对背景的遮挡，又会使得背景区域无法合并到一起。例如，图 ~\cite{fig:sub:img}中输入图像中背景部分的树林，由于前景对象的遮挡，这部分区域不再联通。一个理想的区域合并算法应该能处理好上述问题，使得属于前景区域和背景区域的像素能分别合并到一起。
-\begin{figure}[h]
+如图~\ref{fig:rm}所示，图~\ref{fig:sub:img}为输入图像，其中水面上划船的人为显著性前景对象。分别利用文献~\inlinecite{Richard2004Statistical}、~\inlinecite{Xiao2015Complexity}所提出的图像区域合并算法对输入图像进行分割，得到结果如图~\ref{fig:sub:srm}和图~\ref{fig:sub:cadm}所示。输入图像被分为9个区域，分别用不同的随机颜色表示。从图中可以看出，当分割进行到此阶段时，文献~\inlinecite{Richard2004Statistical}、~\inlinecite{Xiao2015Complexity}算法会将前景对象合并到背景区域中。其中图~\ref{fig:sub:cadm}中结果更为明显，划船人被分割到多个区域中。出现这种情况的主要原因是在合并过程中随着区域逐渐扩大区域间的相似度越来越高，如果在合并时只考虑区域间在色彩及空间上的相似度则很容易将属于前景区域与属于背景的区域合并到一起。另外，前景对象一般具有连续和紧凑的特点，即属于前景的对象的空间分布较为集中。如果在合并时仅允许相邻的区域进行合并~\cite{SelectiveSearch}可以在一定程度上防止前景区域合并到背景区域。但是考虑到前景对象对背景的遮挡，又会使得背景区域无法合并到一起。例如，图 ~\ref{fig:sub:img}中输入图像中背景部分的树林，由于前景对象的遮挡，这部分区域不再联通。一个理想的区域合并算法应该能处理好上述问题，使得属于前景区域和背景区域的像素能分别合并到一起。
+\begin{figure}[htb]
   \centering%
   \subcaptionbox{输入图像\label{fig:sub:img}} %标题的长度，超过则会换行，如下一个小图。
     {\includegraphics[width=0.25\textwidth]{0001.jpg}}%
- %\hspace{1em}%
+ \hspace{1em}%
   \subcaptionbox{~\inlinecite{Richard2004Statistical}分割结果			   \label{fig:sub:srm}}
       {\includegraphics[width=0.25\textwidth]{srm_7.png}}
-        \subcaptionbox{~\inlinecite{Xiao2015Complexity}分割结果\label{fig:sub:cadm}}
+ \hspace{1em}
+  \subcaptionbox{~\inlinecite{Xiao2015Complexity}分割结果\label{fig:sub:cadm}}
       {\includegraphics[width=0.25\textwidth]{cadm.jpg}}
   \caption{图像背景减除示例}
   \label{fig:rm}
@@ -51,7 +52,7 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \section{算法描述}
 \label{sec:algorithm}
 本章算法主要分为三个阶段，主要流程图见图~\ref{fig:algflow}所示。首先，依据像素的空间相关性和色彩一致性利用文献~\inlinecite{superpixel}的算法对图像进行超像素分割, 将图像分为多个初始区域。 随后开始第一阶段合并，在此阶段不断将相似的相邻区域进行合并，直到区域数量达到阈值$N$。由于前景的遮挡，可能会使某些背景区域被分割成多个小区域，同时在前一过程中会有一些小区域由于与周围区域差别较大无法参与合并而形成空洞。在第二阶段处理这些遮挡和空洞问题，允许相似但不相邻的区域进行合并，同时将空洞区域与其最相似的邻居区域进行合并。在第三阶段，采用显著性引导的合并策略，分析各区域的显著性，将显著性最差的区域标记为背景区域$R_{B}$，剩下的其它区域一起可以看作是可能的显著性区域。不断以显著性从低到高的顺序依次将所有区域合并到$R_{B}$。最后将在合并过程中可以得到的候选显著性区域（Proposals）加权平均得到最终显著性区域结果。\par
-\begin{figure}[h]
+\begin{figure}[htb]
   \centering%
       {\includegraphics[width=0.9\textwidth]{SGRMflowChart.png}}
 
@@ -97,7 +98,7 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 
 
 \renewcommand{\algorithmcfname}{算法}
-\begin{algorithm}
+\begin{algorithm}[htb]
 \LinesNumbered
 \KwData {初始化区域$Regions$,每次合并的区域比例$k$ ,区域合并目标数$N$ }
 \KwResult {合并后的区域$Regions$}
@@ -114,17 +115,22 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \subsection{遮挡和空洞处理}
 \label{subsec:mergeP2}
 
-由于前景的遮挡，背景区域通常被分割为多块不相邻的区域，例如图\ref{fig:occ}中的背景部分，而这些背景部分应该用一个区域表示更合理。
-\begin{figure}[h]
+由于前景的遮挡，背景区域通常被分割为多块不相邻的区域，例如图\ref{fig:sub:occ1}中的背景部分，而这些背景部分应该用一个区域表示更合理。另外，在很多情况下背景之间也会出现遮挡情况，例如图\ref{fig:sub:occ2}所示的草地。这两块草地并不相邻，但是从区域合并的角度来说，应该将这两块区域合并到一起。
+\begin{figure}[htb]
   \centering%
-      {\includegraphics[width=0.9\textwidth]{occlusion.png}}\\
-
-  \caption{显著性检测结果对比}
+  \subcaptionbox{背景被前景遮挡\label{fig:sub:occ1}} %标题的长度，超过则会换行，如下一个小图。
+    {\includegraphics[width=0.4\textwidth]{occ1.png}}%
+ \hspace{1em}%
+  \subcaptionbox{其它遮挡情况\label{fig:sub:occ2}}
+      {\includegraphics[width=0.4\textwidth]{occ2.png}}
+      
+  \caption{遮挡示例}
   \label{fig:occ}
 \end{figure}
-在第一阶段的合并中并不允许不相邻的区域合并，防止在早期将那些属于前景但与局部背景接近的区域合并到背景中。在第一阶段合并结束之后处理遮挡则可以有效避免这一错误。遮挡处理的算法为:
+在第一阶段的合并中并不允许不相邻的区域合并，防止在早期将那些属于前景但与局部背景接近的区域合并到背景区域中。在第一阶段合并结束之后处理遮挡则可以有效避免这一错误。本章算法中的遮挡处理的具体算法为:
+
 \renewcommand{\algorithmcfname}{算法}
-\begin{algorithm}
+\begin{algorithm}[htb]
 \LinesNumbered
 \KwData {图像区域$Regions$, 合并门限$Threshold$ }
 \KwResult {合并后的区域$Regions$}
@@ -141,7 +147,21 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \label{alg:algMergeP2}
 \caption{遮挡处理}
 \end{algorithm}
-图像中存在局部小区域，因为与周围邻域色彩分布差别较大，造成优先级低无法参与合并。这些区域将形成空洞，如图~\ref{fig:hole}所示。实际上这些空洞小区域对前景区域和背景区域的合并和分离影响并不大，在处理时将其与其合并优先级最高的邻居区域合并。
+\par
+
+图像中存在局部小区域，因为与周围邻域色彩分布差别较大，造成优先级低无法参与合并。这些区域将形成空洞，如图~\ref{fig:hole}所示。在图~\ref{fig:sub:hole1}中为输入待处理图像，图像中的显著性前景是小狗，背景部分主要包括草地和小花朵，图~\ref{fig:sub:hole2}中为经过第一阶段合并后得到的区域分割结果，其中用不同颜色标注不同区域。从图~\ref{fig:sub:hole2}中可以看出，因为花朵部分在色彩上与草地区域差距较大，这部分区域没有参与到区域合并中，从而形成了空洞。实际上这些空洞小区域对前景区域和背景区域的合并和分离影响并不大，在处理时将其与其合并优先级最高的邻居区域合并。注意到空洞可能出现在背景以及前景区域，在处理时将其与周围邻域最接近的区域合并可以降低区域复杂度，使得前景区域更容易从背景中分离出来。
+\begin{figure}[htb]
+  \centering%
+  \subcaptionbox{输入图像\label{fig:sub:hole1}} %标题的长度，超过则会换行，如下一个小图。
+    {\includegraphics[width=0.4\textwidth]{hole1.jpg}}%
+ \hspace{1em}%
+  \subcaptionbox{第一阶段区域合并结果\label{fig:sub:hole2}}
+      {\includegraphics[width=0.4\textwidth]{hole2.jpg}}
+
+  \caption{空洞示意图}
+  \label{fig:hole}
+\end{figure}
+
 \subsection{显著性引导的区域合并}
 \label{subsec:mergeP3}
 
@@ -160,7 +180,7 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 其中，$BorderR(i)$表示区域$i$中属于图像边缘的像素占全部图像边缘的比例，$ContrastB(i)=HistogranDist(H(i),H(R_B ))$，即区域$i$与背景区域$R_B$的颜色直方图距离。 $AD2C(i)$为区域$i$中心与图像中心的平均距离，归一化到$[0,1]$范围。在大多数情况下，摄影师在拍摄照片时都会将主体放在靠近中心的位置，因此靠近图像边缘的部分是背景的概率较大。加权系数$k_b,k_a,k_c$为常量,它们的值分别为0.3、0.3、0.4。\par
 第三阶段合并的算法如下所示:
 \renewcommand{\algorithmcfname}{算法}
-\begin{algorithm}
+\begin{algorithm}[htb]
 \LinesNumbered
 \KwData {图像区域$Regions$, 背景区域$R_B$ }
 \KwResult {候选显著性区域Proposals}
@@ -176,11 +196,37 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \label{alg:algMergeP3}
 \caption{显著性引导的区域合并}
 \end{algorithm}
+\par
+在图~\ref{fig:sgrm}中展示了一个显著性引导的区域合并的例子。在图~\ref{fig:sgrm}(a)中是图~\ref{fig:sub:img}经过前两个阶段区域合并后的结果，用不同随机颜色填充不同区域，下同。图~\ref{fig:sgrm}(b)-(h)为显著性引导区域合并的过程。在每次合并时，将当前显著性最弱的区域合并到背景区域，直到只剩2个区域。从图中可以看到，显著性对象直到合并的最后阶段才被合并到背景区域中。虽然合并的最终目标是得到显著性对象和背景两个区域，但是实际上却很难实现。主要原因是在自然图像中，显著性前景自身可能由多个齐次性区域组成，例如图~\ref{fig:sub:img}中的划船人。在实验中，作者发现将显著性对象的各部分合并在一起是十分困难的，主要受到到显著性对象的复杂度和不确定性影响的干扰。因此本章提出以显著性引导的方式，不断将显著性若的区域合并到背景。合并过程中产生的中间结果以及合并顺序等信息可以用来计算准确的显著性对象区域。
 
+\begin{figure}[htb]
+  \centering%
+      {\includegraphics[width=0.9\textwidth]{sgrm.png}}\\
+
+  \caption{显著性引导的区域合并示意图}
+  \label{fig:sgrm}
+\end{figure}
+
+\par
 \subsection{显著性区域检测}
 \label{subsec:saliency}
 
-在自然图像中,前景通常可认为是由多个部分组成，例如人的身体通常可分为皮肤部分、衣服、裤子等。这些部分的颜色和纹理信息等有着较大差别，在合并时很难合并到一起。为了得到完整的显著性区域，将第三阶段合并过程中产生的非背景区域作为候选显著性区域。假设候选区域$Proposals(i)$包括$k_i$个区域,其中区域$j$的显著性值$PropSal(i,j)$定义为:
+在自然图像中,前景通常可认为是由多个部分组成，例如人的身体通常可分为皮肤部分、衣服、裤子等。这些部分的颜色和纹理信息等有着较大差别，在合并时很难合并到一起。例如，在图~\ref{fig:sub:fig}中为两种输入待处理图像，从图像中可以看出上方图像中的显著性对象为红色花朵，下方图像中的显著性对象为两个散步的人。图~\ref{fig:sub:seg}中为经过前两个阶段区域合并后的结果。从图~\ref{fig:sub:fig}中我们看到，经过区域分割之后更容易提取显著性对象。特别是上方图像中的花朵，在区域合并时被分在一个区域，通过比较区域的显著性很容易将其从背景中提取出来。但是，下方图像中的情况更为复杂，从图中易知前景对象是两个穿不同颜色衣裤的人，但是在区域合并时无法将所有属于前景的区域合并在一起。这时，所求显著性对象分布在5个区域之中。
+
+\begin{figure}[htb]
+  \centering%
+  \subcaptionbox{输入图像\label{fig:sub:fig}} %标题的长度，超过则会换行，如下一个小图。
+    {\includegraphics[width=0.25\textwidth]{fig.png}}%
+ \hspace{1em}%
+  \subcaptionbox{区域合并结果\label{fig:sub:seg}}
+      {\includegraphics[width=0.25\textwidth]{seg.png}}
+
+  \caption{齐次的前景区域可以合并到一个区域并易于提取，而非齐次前景对象在区域合并后可能包含多个区域。}
+  \label{fig:fgseg}
+\end{figure}
+
+\par
+为了得到完整的显著性区域，本章算法将第三阶段合并过程中产生的非背景区域作为候选显著性区域(proposals)。假设候选区域$Proposals(i)$包括$k_i$个区域,其中区域$j$的显著性值$PropSal(i,j)$定义为:
 $$
    PropSal(i,j)=ContrastB(j) \times \exp{(-\frac{Ad2c(j)^2}{\varphi_d^2 })}
 $$
@@ -200,11 +246,26 @@ $$ Fillness(i) = \exp({-(\frac{size(i)}{size(BB(i))}-m_f)^2}/\varphi_f^2)$$ \par
 最后，依据$P$个候选显著性区域及其可靠性指标，以加权平均的方式得到最终显著性结果：
 $$ S(I) = \frac{\sum_{i=1}^{P}PropCon(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\sum_{i=1}^{P}PropCon(i)}$$
 
+上述过程如图~\ref{fig:weighted}所示，其中将候选显著性区域的可靠性值量化到[0,255]之间，以灰度图格式显示。经过图~\ref{fig:weighted}中左侧的候选显著性区域加权后得到的最终结果如右侧所示。以加权平均的方式计算最终的显著性区域结果可以处理显著性对象分布在多个区域的情况，相比于提取单个显著性区域或者尝试将显著性区域合并到一个区域的方法，该算法的鲁棒性更好。
+\begin{figure}[htb]
+  \centering%
+      {\includegraphics[width=0.9\textwidth]{weighted.png}}\\
+
+  \caption{显著性引导的区域合并示意图}
+  \label{fig:weighted}
+\end{figure}
 
 \section{实验结果与分析}
 \label{sec:results}
+
+
 通过C++编程借助OpenCV~\cite{opencv_library}实现了本文算法，在两个公开的测试集ASD~\cite{Achanta08}和ECSSD~\cite{ECSSD}上进行了测试。两个数据集中均包含1000张图像。其中ECSSD数据集中的图像主要是自然场景下拍摄的图像，其背景复杂度相比于ASD数据集中的图像更高，同时也更接近日常实际应用。这两个数据集中均包含人工标注的精确显著性区域。\par
-在实验中, 算法~\ref{alg:algMergeP1}中的参数设置为$k=0.2,N=15$，算法~\ref{alg:algMergeP2}中的$threshold=0.8$。公式~\ref{equ:chap2:PropSal}中的系数$w_o,w_f,w_{sc}$分别为0.3、0.05、0.65，在本章所以实验中上述所有参数均使用固定值。将本章所提出的算法 (RM)与AC~\cite{Achanta08}，CSH~\cite{Yan2014Hierarchical}，FT~\cite{saliencyFilter}，GB~\cite{Harel07graph-basedvisual}，GC~\cite{GC}，GMR~\cite{GMR}，IT~\cite{itti}，RC~\cite{ChengPAMI}， SF~\cite{saliencyFilter}，SR~\cite{SR}方法进行了比较。其中RC、GMR、CSH算法和本文算法都属于基于区域的方法。部分结果的比较见图~\ref{fig:chap2:comp1}和图~\ref{fig:chap2:comp2}。通过对比可以看到，本文算法可以处理各种复杂背景的自然图像，例如图~\ref{fig:chap2:comp1}中的第三行以及图~\ref{fig:chap2:comp2}中的第二行，对于这些类型的图像RC等算法无法有效工作。而对于背景部分与前景部分在色彩空间分布较为接近的情况，例如图~\ref{fig:chap2:comp1}中的第二行及图~\ref{fig:chap2:comp2}中的第三行，本文算法的处理结果同样优于基于全局对比度的RC等算法。\par
+在实验中, 算法~\ref{alg:algMergeP1}中的参数设置为$k=0.2,N=15$，算法~\ref{alg:algMergeP2}中的$threshold=0.8$。公式~\ref{equ:chap2:PropSal}中的系数$w_o,w_f,w_{sc}$分别为0.3、0.05、0.65，在本章所以实验中上述所有参数均使用固定值。
+
+\subsection{显著性检测}
+\label{sec:sub:saliencyRst}
+
+为验证本章算法在显著性区域检测中的有效性，将本章所提出的算法 (RM)与AC~\cite{Achanta08}，CSH~\cite{Yan2014Hierarchical}，FT~\cite{saliencyFilter}，GB~\cite{Harel07graph-basedvisual}，GC~\cite{GC}，GMR~\cite{GMR}，IT~\cite{itti}，RC~\cite{ChengPAMI}， SF~\cite{saliencyFilter}，SR~\cite{SR}方法进行了比较。其中RC、GMR、CSH算法和本文算法都属于基于区域的方法。部分结果的比较见图~\ref{fig:chap2:comp1}和图~\ref{fig:chap2:comp2}。通过对比可以看到，本文算法可以处理各种复杂背景的自然图像，例如图~\ref{fig:chap2:comp1}中的第三行以及图~\ref{fig:chap2:comp2}中的第二行，对于这些类型的图像RC等算法无法有效工作。而对于背景部分与前景部分在色彩空间分布较为接近的情况，例如图~\ref{fig:chap2:comp1}中的第二行及图~\ref{fig:chap2:comp2}中的第三行，本文算法的处理结果同样优于基于全局对比度的RC等算法。\par
 \begin{figure}[h]
   \centering%
       {\includegraphics[width=0.9\textwidth]{salcomp1.png}}
@@ -276,10 +337,25 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
 
 \end{table}
 
+\subsection{图像分割结果}
+\label{sec:sub:segmentation}
+
+本章所提算法通过区域合并的方式，逐渐将图像中相似区域进行合并，在合并过程中可以得到一系列图像分割结果。这些图像分割结果可以为显著性前景检测，对象定位等应用提供重要线索。在本小结中，将本章算法与其它图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}进行比较。在实验中，将图像分割目标设为10。利用各算法进行图像分割时有时不能保证正好得到10个区域，这时选取最接近目标的分割结果作为最终结果。一个好的图像分割算法可以将感兴趣区域其中在一个区域，并且与背景区域分开。如果分割结果所包含的区域过多则包含较多冗余信息，过少则会使得前景区域合并到背景区域中，无法准确提取显著性对象。因此实验中将分割目标设为10左右，基本能同时满足简化图像结构以及保持显著性对象边界的目标。\par
+实验中部分比较结果如图~\ref{fig:segCom}所示，其中(a)列图像为输入图像，(b)-(e)列分别为SRM、文献~\inlinecite{Xiao2015Complexity}、Mean Shift~\cite{MeanShift}，以及本章算法的分割结果。通过比较可以看出，本章算法的分割结果基本上能够避免将前景对象合并到背景中。而其它图像分割算法均存在将前景对象合并到背景中的情况。主要原因在于这些图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}在分割时没有考虑到分割过程中不同阶段的特点，始终以同样的策略进行区域合并。另外，在合并过程中没有对遮挡和空洞等情况进行特殊处理。综上所述，本章提出的显著性引导的区域合并算法能够在图像分割过程中较好的保持前景对象的边界，避免其合并到背景区域；同时经过遮挡和空洞处理后，背景区域也可以合并到一起降低了复杂度，有助于显著性前景的提取。
+\begin{figure}[htb]
+  \centering%
+      {\includegraphics[width=0.9\textwidth]{segcom.png}}\\
+
+  \caption{显著性引导的区域合并示意图}
+  \label{fig:segCom}
+\end{figure}
 
 
-虽然本文算法可以处理部分复杂背景的情况，但在处理背景连续性较差的图像时效果较差，主要原因是在区域合并的过程中会将前景区域错误的合并到背景中，从而无法提取到正确的前景。例如,在图~\ref{fig:fail}中，前两列为输入图像和正确前景，后三列分别为本文算法第一阶段，第二阶段合并结果以及最终提取的显著区域结果。由于这两幅图像中的背景部分十分复杂，并不具备本文假设的连续性。因此在区域合并时误将前景区域合并到了背景中，从而导致算法无法提取正确的显著性前景。
- \begin{figure}[h]
+\subsection{算法失败的情况}
+\label{subsec:failure}
+
+虽然本章算法可以处理部分复杂背景的情况，但在处理背景连续性较差的图像时效果较差。主要原因是在区域合并的过程中会将前景区域错误的合并到背景中，从而无法提取到正确的前景。例如,在图~\ref{fig:fail}中，前两列为输入图像和正确前景，后三列分别为本文算法第一阶段，第二阶段合并结果以及最终提取的显著区域结果。由于这两幅图像中的背景部分十分复杂，并不具备本文假设的连续性。因此在区域合并时误将前景区域合并到了背景中，从而导致算法无法提取正确的显著性前景。
+ \begin{figure}[htb]
   \centering%
       {\includegraphics[width=0.9\textwidth]{fail.png}}
 
