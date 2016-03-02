@@ -112,7 +112,7 @@ Perazzi等人~\cite{saliencyFilter}提出利用欧几里得距离来计算$D_{r}
 \end{figure}
 Efros等人~\cite{Efros}利用$\psi_{q}$的中心点像素来填充$p$，即：
 $$Output(p)=Value(q),p\in \Omega, q\in \overline{\Omega},q=arg min d(\psi_{p},\psi_{q})$$
-，利用分块的均方差之和(Sum of  Squared Differences,SSD)来计算分块之间的距离：
+，利用分块之间的均方差之和(Sum of  Squared Differences,SSD)来计算分块之间的距离，评估分块之间的相似性：
 $$d(\psi_{p},\psi_{q})=\sum_{i}^{N}\sum_{j}^{N}\left \| \psi_{p}(i,j)-\psi_{q}(i,j) \right \|^{2}$$
 其中$N$为样本的长度和宽度。Criminisi等人~\cite{Criminisi04regionfilling}对Efros等人的算法进行了改进，首先利用未知区域边缘曲线的辐射度方向(isophoto direction)与法向量的夹角来确定分块的填充优先级，使得包含结构信息的分块优先填充，从而保证纹理信息能从已知区域扩散到未知区域；其次，利用最佳匹配块中的对应像素来填充对应未知分块中的像素，比Efros等人的算法效率更高。但是，~\inlinecite{Criminisi04regionfilling}所提算法无法恢复未知区域的连续结构信息。文献~\inlinecite{userInpainting}提出了一种基于结构传播的图像补全算法，该方法利用一些用户输入的一些曲线或者直线把未知区域分为纹理区域和结构区域。对于这两种区域，分别利用不同的策略来恢复纹理信息或结构信息。Xu等人~\cite{Xu:2010}提出另一种基于分块稀疏性（patch sparsity）的图像填充算法，该算法利用分块的稀疏性来确定填充顺序。与之前的方法不同，Xu等人所提算法并且利用多个分块的组合来填充未知分块。虽然Xu等人所提算法在填充效果上优于文献~\inlinecite{Criminisi04regionfilling}的算法并且接近基于用户交互的算法~\cite{userInpainting}，但是其计算复杂度过高，需要几分钟来处理一张普通大小的图像。Barnes等人~\cite{Barnes:2009}提出一种非常快的随机匹配算法，称为PatchMatch。该方法利用图像的空间相关性，以随机迭代的方式寻找图像的最佳匹配块，并用其进行图像填充。该算法被应用在Adobe公司的Photoshop软件的内容感知填充功能中。虽然PatchMatch算法的速度非常快，处理纹理区域效果好，但是却无法处理包含大块未知结构信息的情况。在这两类算法之外，还有一些算法利用了输入图像之外的信息来进行填充。华淼等提出通过网络检索在互联网或联机数据库中根据输入图像以及所缺失信息进行搜索，寻找合适图像完成输入图像未知区域的填充~\cite{huamiao}。
 
