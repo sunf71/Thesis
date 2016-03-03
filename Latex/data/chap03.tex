@@ -33,8 +33,48 @@
  对于图像\(I\), 其GST定义为:
  $$T=\left(\begin{array}{cc}T_{11} & T_{12} \\ T_{21} &T_{22}\end{array}\right)=\left(\begin{array}{cc}\overline{I_{\sigma,x}^2} & \overline{I_{\sigma,x}I_{\sigma,y}} \\ \overline{I_{\sigma,x}I_{\sigma,y}} & \overline{I_{\sigma,y}^2}\end{array}\right),$$ 
  其中 \(I_{\sigma,x}\) and \(I_{\sigma,y}\)  为图像在水平方向和垂直方向上的梯度 ，\(\overline{X}\) 表示高斯核函数\(G_{\hat{\sigma}}\) 与 \(X\)的卷积. \(T\) 的特征值 \(\lambda_1\) 和 \(\lambda_2\) 可以反映图像所包含的结构信息情况。在包含较强边缘信息的区域有 \(\lambda_1>\lambda_2\approx0\) ，而在不含边缘的平坦区域则有\(\lambda_1\approx\lambda_2\approx0\)。 \( \lambda_{1,2} \) 可以通过下式计算: $$\lambda_{1,2}=\frac{1}{2}\left(T_{11}+T_{22}\pm\sqrt{\left(T_{11}-T_{22}\right)^2+4T^2_{12}}\right)$$ 
- 所包含结构的方向信息可以通过下式计算:
+ 其所包含结构的方向信息可以通过下式计算:
 $$\phi=\frac{1}{2}\arctan{\left(\frac{2T_{12}}{T_{11}-T_{22}}\right)}$$
+为了评估每个分块中是否包含结构信息已经结构的方向信息，LeMeur
+等人\cite{LeMeur_2011}提出计算分块中心点的GST。为了得到区域内更为准确的结构信息，本章算法提出计算分块内所有已知像素的GST，并对结果进行直方图统计。该直方图 \(H\) 以分块内包含的结构方向作为直方图分块依据，统计区域内已知像素的结构能量 \(\lambda_1\)。相比于文献\cite{LeMeur_2011}的方法，本章算法得到的是整个分块的结构信息，比文献\cite{LeMeur_2011}只计算分块中心点的GST的方法更鲁棒。在本章算法中\(H\)的大小(直方图中Bin的数量)为12。定义分块结构能量(patch structure energe, PSE):
+$$P_e\left(p\right)=Max\left(Sum_{b\in{H\left(p\right)}}\left(b\right)\right)$$, 其中\(H\left(p\right)\) 表示结构能量直方图。 对于图像\(I\) , 公式~\ref{equ:chap3:order}中的数据项定义为:
+$$D(p)=(1-\alpha)P_e(p)/max_{q\in{I}}(P_e(q))+\alpha,$$ 其中 \(\alpha\) 是一个线性变换因子，使得\(D(p)\in{[\alpha,1]}\)。加入\(\alpha\) 的目的是使得数据项的值接近于可靠性项值。在本章算法中，参考文献\cite{Xu:2010}的建议，将\(\alpha\)设为固定值0.2。
+\subsection{加权SSD}
+\label{sec:sub:WSSD}
+为了寻找样本分块\(\Psi_p\)的最佳匹配块，Criminisi等人\cite{Criminisi04regionfilling}借助于两个分块间已知像素的SSD类评估分块间的相似性。待填充分块\(\Psi_p\)的最佳匹配块定义为
+\begin{equation}
+\label{equ:cha03:bestmatch}
+\Psi_{\hat{q}}=arg\;min_{\Psi_q\in\Phi}d(K\Psi_p,K\Psi_q)
+\end{equation}
+其中，\(d(.,.)\) 表示计算两个分块之间的 SSD ， \(K\) ， \(\Phi\)表示搜索范围。实际上，仅仅依靠分块已知区域的SSD是无法保证找到的最佳匹配快都是最合适用于填充的分块。例如，如图~\ref{fig:cha03:1}所示，蓝色的分块为待填充分块，绿色分块为用公式~\ref{equ:cha03:bestmatch}计算得到的最佳匹配块。从图中可以看到，在一些情况下仅靠分块已知区域的SSD不能找到合适的填充块。
+\begin{figure}[!htbp]
+	\begin{center}
+			\includegraphics[width=0.8\columnwidth]{ch3/fig1.jpg}
+	\end{center}
+    \caption{使用已知分块内SSD搜索造成错误匹配情况}
+	\label{cha03:fig:1}
+\end{figure}
+在文献 \inlinecite{kwokFast}中，提出了一种基于梯度的预填充方法，对待填充分块内的未知像素进行估计。基于同样的预处理方法，。文献\inlinecite{jemi:2011}提出使用已知和未知区域的加权SSD (Weighted SSD，WSSD)来寻找最佳匹配块。该算法的预填充算法假设未知区域内的像素梯度值为零。基于这一假设，未知区域的像素颜色值可以通过梯度方程的最小二乘法来求解。然而，实际应用中图像较难满足梯度值为零这一假设。这这种预处理方法只考虑了分块内的局部梯度信息，最终的预处理结果并不明显。 Xu等人\cite{Xu:2010}指出，待填充分块内新填充的像素应该与周围分块保持颜色一致性和连续性。基于这一思路，本章提出了一种新的预处理方法。
+为了方便比较，本章中使用与文献\inlinecite{Xu:2010}一致的符合标识。假设 \(N(p)\) 为中心点在\(p\)的邻域窗口，集合\(N_s(p)\)定义为：
+$$N_s(p)= \left\{ p_j:p_j \in N(p)\;and\;\Psi_{p_j} \subset \overline{\Omega} \right\}.$$
+分块 \(\Psi_p\) 和\(\Psi_{p_j}\)  之间的相似性定义为：
+$$\omega_{p,p_{j}}=\frac{1}{Z(p)}exp\left(-\frac{d(K\Psi_p,K\Psi_{p_j})}{\sigma^2\left|K\Psi_p\right|}\right)$$
+其中 \(Z(p)\) 为归一化因子使得 $$\sum_{p_j\in N_s(p)}\omega_{p,p_j} = 1$$ ， \(\sigma\) 为固定值5.0 \cite{Xu:2010}.\par
+令运算符\(U\) 表示从分块中提取未知像素，分块 \(\Psi_p\) 中的未知像素的预填充为
+$$U(p)=U\left(\sum_{p_j \in N_s(p)}{\omega_{p,p_j}\Psi_{p_j}}\right)$$\par
+为了寻找待填充分块的最佳匹配块, 本章提出以WSSD的方式来评估分块之间的相似性：
+\begin{equation}
+W(\Psi_p,\Psi_{p_j})=\beta\times d(K\Psi_p,K\Psi_{p_j})+(1-\beta)\times d(U\Psi_p,U\Psi_{p_j})
+\label{chap03:equ:wssd}
+\end{equation}
+其中加权系数 \(\beta\) 为已知区域的权值，从~\ref{chap03:equ:wssd}中可看出WSSD综合考虑了分块未知区域和已知区域的信息。由于未知区域是通过预填充算法估算的，因此加权系数\(\beta\)的值应该大约0.5，让已知部分的权值更大。在本章算法中 \(\beta\)的值建议范围为$[0.8, 0.9]$。综上所述，分块\(\Psi_p\) 的最佳匹配块定义为：
+
+$$\Psi_{\hat{p}}=arg\;min_{\Psi_q \in \Phi}{W(\Psi_p,\Psi_q)}.$$
+
+\subsection{最佳匹配块搜索策略}
+\label{sec:sub:smartSearch}
+
+
 
 \section{实验结果与分析}
 \label{results}
