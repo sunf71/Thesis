@@ -31,8 +31,8 @@
 
 其中 \(C(p)\) 表示可靠性项\cite{Criminisi04regionfilling}，具体定义为： $$C(p)=\frac{\sum_{q\in\Psi_p\bigcap\overline{\Omega}}{C(q)}}{\left\vert{\Psi_p}\right\vert}，其中$$\(\left\vert.\right\vert\)  表示计算分块中的像素数. 引入\(C(p)\) 的目的在于让那些包含更多已知像素的区域获得更高的优先级。~\ref{equ:chap3:order}中\(D(p)\) 是数据项，主要评估分块中包含结构信息的情况，增加那些包含较多结构信息分块的填充优先级。Xu等人\cite{Xu:2010}和Lemeur等人\cite{LeMeur_2011}分别提出了不同的\(D(p)\)计算方法。本章中提出了一种基于GST的方法。由于GST可以很好的描述图像的结构信息以及梯度方向，已经被广泛运用于图像处理领域\cite{Kothe03edgeand}。 \par
  对于图像\(I\), 其GST定义为:
- $$T=\left(\begin{array}{cc}T_{11} & T_{12} \\ T_{21} &T_{22}\end{array}\right)=\left(\begin{array}{cc}\overline{I_{\sigma,x}^2} & \overline{I_{\sigma,x}I_{\sigma,y}} \\ \overline{I_{\sigma,x}I_{\sigma,y}} & \overline{I_{\sigma,y}^2}\end{array}\right),$$ 
- 其中 \(I_{\sigma,x}\) and \(I_{\sigma,y}\)  为图像在水平方向和垂直方向上的梯度 ，\(\overline{X}\) 表示高斯核函数\(G_{\hat{\sigma}}\) 与 \(X\)的卷积. \(T\) 的特征值 \(\lambda_1\) 和 \(\lambda_2\) 可以反映图像所包含的结构信息情况。在包含较强边缘信息的区域有 \(\lambda_1>\lambda_2\approx0\) ，而在不含边缘的平坦区域则有\(\lambda_1\approx\lambda_2\approx0\)。 \( \lambda_{1,2} \) 可以通过下式计算: $$\lambda_{1,2}=\frac{1}{2}\left(T_{11}+T_{22}\pm\sqrt{\left(T_{11}-T_{22}\right)^2+4T^2_{12}}\right)$$ 
+ $$T=\left(\begin{array}{cc}T_{11} & T_{12} \\ T_{21} &T_{22}\end{array}\right)=\left(\begin{array}{cc}\overline{I_{\sigma,x}^2} & \overline{I_{\sigma,x}I_{\sigma,y}} \\ \overline{I_{\sigma,x}I_{\sigma,y}} & \overline{I_{\sigma,y}^2}\end{array}\right),$$
+ 其中 \(I_{\sigma,x}\) and \(I_{\sigma,y}\)  为图像在水平方向和垂直方向上的梯度 ，\(\overline{X}\) 表示高斯核函数\(G_{\hat{\sigma}}\) 与 \(X\)的卷积. \(T\) 的特征值 \(\lambda_1\) 和 \(\lambda_2\) 可以反映图像所包含的结构信息情况。在包含较强边缘信息的区域有 \(\lambda_1>\lambda_2\approx0\) ，而在不含边缘的平坦区域则有\(\lambda_1\approx\lambda_2\approx0\)。 \( \lambda_{1,2} \) 可以通过下式计算: $$\lambda_{1,2}=\frac{1}{2}\left(T_{11}+T_{22}\pm\sqrt{\left(T_{11}-T_{22}\right)^2+4T^2_{12}}\right)$$
  其所包含结构的方向信息可以通过下式计算:
 $$\phi=\frac{1}{2}\arctan{\left(\frac{2T_{12}}{T_{11}-T_{22}}\right)}$$
 为了评估每个分块中是否包含结构信息已经结构的方向信息，LeMeur
@@ -72,8 +72,50 @@ W(\Psi_p,\Psi_{p_j})=\beta\times d(K\Psi_p,K\Psi_{p_j})+(1-\beta)\times d(U\Psi_
 $$\Psi_{\hat{p}}=arg\;min_{\Psi_q \in \Phi}{W(\Psi_p,\Psi_q)}.$$
 
 \subsection{最佳匹配块搜索策略}
-\label{sec:sub:smartSearch}
-
+在基于样本的图像填充算法中，主要的计算量集中在最佳匹配块的搜索中。为了提高搜索速度，文献\cite{kwokFast}提出了一种基于$K$D-tree的近似最相近邻域搜索算法，该方法主要利用高效的$K$D-tree数据结构对搜索进行加速。本章算法中，以让搜索更智能和更快为目标，提出一种智能搜索策略。由于SSD计算需要对分块每个像素进行比较，效率很低。实际上，我们人眼在搜索匹配块时并不会这样逐个像素去比较。只有当两个分块在外观上十分接近时，才可能进行这样逐个像素的比较。假如要人工完成最佳匹配块的搜索工作，人们会首先将那些明显不一致的分块放到一边不予考虑。这个预先判断和筛选的过程非常重要，本章提出利用分块结构测试的方式对分块进行测试，判断分块间结构信息是否一致。对于那些在结构上明显不一致的分块，可以直接将其排除在外，减少冗余的计算，从而加快搜索的速度。
+\subsubsection{分块结构距离测试}
+\label{sec:2.2.1}
+SSD computing is the most time consuming in the best-match patch searching process. As mentioned in 2.1.1, the patch GST histogram represents the structural information of the patch. If SSD values of two patches are small, their structural information must be similar, and so are their patch GST histograms. Given two patches \(\Psi_p\) and \(\Psi_q\) with histograms \(H(p)\) and \(H(q)\), we define the Patch Structure Distance (PSD) between these two patches by calculating the correlation coefficient of \(H(p)\) and \(H(q)\):
+$$PSD(p,q)=\frac{\acute{\sigma}_{pq}+c}{\acute{\sigma_p}\acute{\sigma_q}+c},$$
+where \(\acute{\sigma}_{pq}\) is the covariance of \(H(p)\) and \(H(q)\), \(\acute{\sigma_p}\) and \(\acute{\sigma_q}\) are the standard deviation of \(H(p)\) and \(H(q)\) respectively, \(c\) is a small constant to avoid zero divide by zero.\par
+Let \(p\) be the patch to be inpainted and \(q\) be a patch in the search area. If \(PSD(p,q)\) is larger than some threshold (0.5\(\sim\)0.6 in our implementation), then \(p\) and \(q\) are not similar in structure, which means \(q\) cannot be the best match and it is in vain to compute SSD between them. So, given a candidate patch \(c\), before computing SSD between \(p\) and \(c\), we test whether the PSD values of these two patches are acceptable. If yes the SSD is then computed, otherwise \(c\) can be discarded directly. Because the patch GST histogram in \(\overline{\Omega}\)  can be pre-computed, and the computation cost of PSD is much lower than SSD, so that using PSD test can save quite amount of SSD computation time. In Fig.2, for example, the blue patch is to be inpainted, in the search area marked by the green rectangle, the red patches are those passed the PSD tests. We can see that because the blue patch has a vertical edge, all the patches with an edge in horizontal orientation are failed in the PSD tests.
+\begin{figure}[!htbp]
+	\begin{center}
+			\includegraphics[width=0.6\columnwidth]{./fig2.jpg}
+	\end{center}
+    \caption{Patches (red) passed the PSD test for the inpainting patch (blue). The patch marked by black rectangle is the found best-match patch}
+	\label{fig:2}
+\end{figure}
+\subsubsection{Dynamic search window}
+\label{sec:2.2.2}
+In traditional examplar-based methods, the search area \(\Phi\) in (3) is the whole unknown region or a fixed window centered at the center of each patch to be inpainted \cite{Criminisi04regionfilling}-\cite{LeMeur_2011}. Let \(\Psi_p\) be the patch to be filled and its center located at \(p\) ,  consider the image locality, a local window is defined as
+$$Win_l(p)=Win(p,sizeL)\bigcap \Omega,$$
+where \(Win(p,sizeL)\) is a \(sizeL\times sizeL\) window centered at \( p\). \par Inspired by the fast approximate nearest neighbor search algorithm, PatchMatch \cite{Barnes:2009}, we propose a concept of neighbor search window. Let \(\Psi_q\) be a patch next to \(\Psi_p\)  , i.e., the distance between \(p\) and \(q\) equals the patch size. If \(\Psi_q\) has been inpainted and its best-match patch locates at \(\hat{q}\). Considering the image continuity, the best-match patch of \(\Psi_p\) may be next to \(\hat{q}\), too. The neighbor window is then defined as
+$$Win_n(p)=Win(\hat{q},sizeN)\bigcap\Omega.$$ \par
+If none of its neighbors have been inpainted, then \( Win_n(p)=\o \). The whole search region is defined as
+$$\Phi=Win_n(p)\bigcup Win_l(p).$$
+In Fig.3, for example, the blue patch is to be inpainted, the neighbor window and the local window are marked by red and green colors respectively, and the found best-match patch is marked in black. In this way, the whole search scope can be narrowed down dynamically in the inpainting process. Since such a neighbor window is introduced, the size of the local window becomes much smaller. In this paper, the sizes of the local window and the neighbor window are set to 8\(\sim\)10 times and 5\(\sim\)7 times of the patch size, respectively. But when the neighbor window is null, the size of the local window can be larger.\par
+\begin{figure}[!htbp]
+	\begin{center}
+			\includegraphics[width=0.6\columnwidth]{./fig3.jpg}
+	\end{center}
+    \caption{Local window (green) and its neighbor window (red)}
+	\label{fig:3}
+\end{figure}
+In summary, the improved examplar-based image inpainting algorithm is given as follows:\\
+\textbf{Input:} image \(I\) with the unknown region \(\Omega \) and known region \(\overline{\Omega}\), the contour of \(\Omega \) is \(\partial \Omega\)\\
+\textbf{Step1:} For each patch in \(\overline{\Omega}\) centering at \(q\), compute its structure energy histogram \(H(q)\) as described in 2.1.1.\\
+\textbf{Step2:} For each pixel \(p\) on \(\partial \Omega\), compute the structure energy histogram and PSE of patch \(\Psi_p\), then calculate the filling priority of \(\Psi_p\) based on its PSE.\\
+\textbf{Step3:} Iterate the following operation until \(\overline{\Omega}\) is null:
+\begin{itemize}
+    \item Select the patch \(\Psi\) with the highest priority on \(\partial \Omega\).
+    \item Compute the dynamic search area \(\Phi\) as described in 2.2.2.
+    \item For each patch in \(\Phi\), do the PSD Test with \(\Psi\), if passed, compute the WSSD between the two patches by Eq.(4); else set the WSSD between them to the maximum directly.
+    \item Select the patch \(\Psi_m \) in \(\Phi\) with the minimum WSSD as the best-match patch.
+    \item Fill the missing pixels in \(\Psi\) by copying the corresponding pixels from \(\Psi_m\).
+    \item Update \(\partial \Omega\), for each newly added pixel \(n\) on \(\partial \Omega\), compute the filling priority of patch \(\Psi_n\).
+  \end{itemize}
+\textbf{Output:} The inpainted image.
 
 
 \section{实验结果与分析}
