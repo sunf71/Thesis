@@ -69,7 +69,9 @@
  \end{equation}
  其中加权系数 \(\beta\) 为已知区域的权值，从~\ref{chap03:equ:wssd}中可看出WSSD综合考虑了分块未知区域和已知区域的信息。由于未知区域是通过预填充算法估算的，因此加权系数\(\beta\)的值应该大约0.5，让已知部分的权值更大。在本章算法中 \(\beta\)的值建议范围为$[0.8, 0.9]$。综上所述，分块\(\Psi_p\) 的最佳匹配块定义为：
 
+
  $$\Psi_{\hat{p}}=arg\;min_{\Psi_q \in \Phi}{W(\Psi_p,\Psi_q)}.$$
+
 
  \subsection{最佳匹配块搜索策略}
  在基于样本的图像填充算法中，主要的计算量集中在最佳匹配块的搜索中。为了提高搜索速度，文献\cite{kwokFast}提出了一种基于$K$D-tree的近似最相近邻域搜索算法，该方法主要利用高效的$K$D-tree数据结构对搜索进行加速。本章算法中，以让搜索更智能和更快为目标，提出一种智能搜索策略。由于SSD计算需要对分块每个像素进行比较，效率很低。实际上，我们人眼在搜索匹配块时并不会这样逐个像素去比较。只有当两个分块在外观上十分接近时，才可能进行这样逐个像素的比较。假如要人工完成最佳匹配块的搜索工作，人们会首先将那些明显不一致的分块放到一边不予考虑。这个预先判断和筛选的过程非常重要，本章提出利用分块结构测试的方式对分块进行测试，判断分块间结构信息是否一致。对于那些在结构上明显不一致的分块，可以直接将其排除在外，减少冗余的计算，从而加快搜索的速度。
@@ -83,7 +85,7 @@
 例如，在图~ref{chap03:fig:PSD}中， 蓝色的分块为待填充分块，绿色矩形之内为最佳匹配块搜索范围, 红色分块为通过PSD测试的后续分块。从图~ref{chap03:fig:PSD}中可以看到，由于蓝色的待填充分块包含垂直方向的边缘，所有包含水平方向边缘的分块均没有通过PSD测试。因此这些分块不可能是最佳匹配分块目标，可以直接忽略。
  \begin{figure}[!htbp]
  	\begin{center}
- 			\includegraphics[width=0.6\columnwidth]{./fig2.jpg}
+ 			\includegraphics[width=0.6\columnwidth]{ch3/fig2.jpg}
  	\end{center}
      \caption{Patches (red) passed the PSD test for the inpainting patch (blue). The patch marked by black rectangle is the found best-match patch}
  	\label{chap03:fig:PSD}
@@ -101,7 +103,7 @@
  In Fig.3, for example, the blue patch is to be inpainted, the neighbor window and the local window are marked by red and green colors respectively, and the found best-match patch is marked in black. In this way, the whole search scope can be narrowed down dynamically in the inpainting process. Since such a neighbor window is introduced, the size of the local window becomes much smaller. In this paper, the sizes of the local window and the neighbor window are set to 8\(\sim\)10 times and 5\(\sim\)7 times of the patch size, respectively. But when the neighbor window is null, the size of the local window can be larger.\par
  \begin{figure}[!htbp]
  	\begin{center}
- 			\includegraphics[width=0.6\columnwidth]{./fig3.jpg}
+ 			\includegraphics[width=0.6\columnwidth]{ch3/fig3.jpg}
  	\end{center}
      \caption{Local window (green) and its neighbor window (red)}
  	\label{fig:3}
