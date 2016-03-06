@@ -46,7 +46,7 @@
  \label{equ:cha03:bestmatch}
  \Psi_{\hat{q}}=arg\;min_{\Psi_q\in\Phi}d(K\Psi_p,K\Psi_q)
  \end{equation}
- 其中，\(d(.,.)\) 表示计算两个分块之间的 SSD ， \(K\) ， \(\Phi\)表示搜索范围。实际上，仅仅依靠分块已知区域的SSD是无法保证找到的最佳匹配快都是最合适用于填充的分块。例如，如图~\ref{fig:cha03:1}所示，蓝色的分块为待填充分块，绿色分块为用公式~\ref{equ:cha03:bestmatch}计算得到的最佳匹配块。从图中可以看到，在一些情况下仅靠分块已知区域的SSD不能找到合适的填充块。
+ 其中，\(d(.,.)\) 表示计算两个分块之间的 SSD ， \(K\) ， \(\Phi\)表示搜索范围。实际上，仅仅依靠分块已知区域的SSD是无法保证找到的最佳匹配快都是最合适用于填充的分块。例如，如图~\ref{cha03:fig:1}所示，蓝色的分块为待填充分块，绿色分块为用公式~\ref{equ:cha03:bestmatch}计算得到的最佳匹配块。从图中可以看到，在一些情况下仅靠分块已知区域的SSD不能找到合适的填充块。
  \begin{figure}[!htbp]
  	\begin{center}
  			\includegraphics[width=0.8\columnwidth]{ch3/fig1.jpg}
@@ -82,51 +82,170 @@
  $$PSD(p,q)=\frac{\acute{\sigma}_{pq}+c}{\acute{\sigma_p}\acute{\sigma_q}+c},$$
 其中\(\acute{\sigma}_{pq}\) 为 \(H(p)\)与 \(H(q)\)之间的协方差, \(\acute{\sigma_p}\) 及 \(\acute{\sigma_q}\) 分别为 \(H(p)\) 与\(H(q)\)的标准差, \(c\) 是一个很小的常数避免出现零除以零的情况。\par
  对于待填充分块 \(p\)以及搜索窗口内的分块\(q\)，当\(PSD(p,q)\)大于某门限，本章算法中门限值设置为(0.5\(\sim\)0.6, 那么认为\(p\) 和 \(q\)在结构上存在较大差异，这也就意味着\(q\) 不可能是要寻找的最佳匹配块。这时也就没有必要再去计算他们之间的SSD。 基于此，对于候选分块\(c\)，在计算 \(p\) 与 \(c\)之间的SSD时，首先测试这两者之间的PSD值是否在可接受的范围之内。对于通过PSD测试的分块，再通过SSD进一步评估分块之间的相似性，而PSD测试没有通过的分块可以直接忽略。由于\(\overline{\Omega}\)范围内所有分块的分块GST直方图可以预先计算，且PSD的计算复杂度远低于SSD， 引入PSD测试可以节省很多SSD的冗余计算。\par
-例如，在图~ref{chap03:fig:PSD}中， 蓝色的分块为待填充分块，绿色矩形之内为最佳匹配块搜索范围, 红色分块为通过PSD测试的后续分块。从图~ref{chap03:fig:PSD}中可以看到，由于蓝色的待填充分块包含垂直方向的边缘，所有包含水平方向边缘的分块均没有通过PSD测试。因此这些分块不可能是最佳匹配分块目标，可以直接忽略。
+例如，在图~\ref{chap03:fig:PSD}中， 蓝色的分块为待填充分块，绿色矩形之内为最佳匹配块搜索范围, 红色分块为通过PSD测试的候选分块，黑色分块为本章算法搜索到的最佳匹配。从图~\ref{chap03:fig:PSD}中可以看到，由于蓝色的待填充分块包含垂直方向的边缘，所有包含水平方向边缘的分块均没有通过PSD测试。因此这些分块不可能是最佳匹配分块目标，可以直接忽略。
  \begin{figure}[!htbp]
  	\begin{center}
  			\includegraphics[width=0.6\columnwidth]{ch3/fig2.jpg}
  	\end{center}
-     \caption{Patches (red) passed the PSD test for the inpainting patch (blue). The patch marked by black rectangle is the found best-match patch}
+     \caption{PSD测试示意图}
  	\label{chap03:fig:PSD}
  \end{figure}
 
 
  \subsection{动态搜索窗口}
  \label{sec:sub:dynamicSearch}
- 在传统的基于样本的图像填充算法中,公式~ref{equ:cha03:bestmatch}中的 \(\Phi\)为以每个待填充区域为中心的固定窗口\cite{LeMeur_2011}，或者是全部未知区域\inlinecite{Criminisi04regionfilling}。 设 \(\Psi_p\) be the patch to be filled and its center located at \(p\) ,  consider the image locality, a local window is defined as
- $$Win_l(p)=Win(p,sizeL)\bigcap \Omega,$$
- where \(Win(p,sizeL)\) is a \(sizeL\times sizeL\) window centered at \( p\). \par Inspired by the fast approximate nearest neighbor search algorithm, PatchMatch \cite{Barnes:2009}, we propose a concept of neighbor search window. Let \(\Psi_q\) be a patch next to \(\Psi_p\)  , i.e., the distance between \(p\) and \(q\) equals the patch size. If \(\Psi_q\) has been inpainted and its best-match patch locates at \(\hat{q}\). Considering the image continuity, the best-match patch of \(\Psi_p\) may be next to \(\hat{q}\), too. The neighbor window is then defined as
- $$Win_n(p)=Win(\hat{q},sizeN)\bigcap\Omega.$$ \par
- If none of its neighbors have been inpainted, then \( Win_n(p)=\o \). The whole search region is defined as
- $$\Phi=Win_n(p)\bigcup Win_l(p).$$
- In Fig.3, for example, the blue patch is to be inpainted, the neighbor window and the local window are marked by red and green colors respectively, and the found best-match patch is marked in black. In this way, the whole search scope can be narrowed down dynamically in the inpainting process. Since such a neighbor window is introduced, the size of the local window becomes much smaller. In this paper, the sizes of the local window and the neighbor window are set to 8\(\sim\)10 times and 5\(\sim\)7 times of the patch size, respectively. But when the neighbor window is null, the size of the local window can be larger.\par
+ 在传统的基于样本的图像填充算法中，公式~\ref{equ:cha03:bestmatch}中的 \(\Phi\)为以每个待填充区域为中心的固定窗口\cite{LeMeur_2011}，或者是全部未知区域\inlinecite{Criminisi04regionfilling}。 设 \(\Psi_p\) 为中心在\(p\)处的待填充分块，考虑到图像局部范围的连续性，在\(p\)附件找到\(p\)的最佳匹配块的概率应该较大。因此定义局部窗口
+ $$Win_l(p)=Win(p,sizeL)\cap \Omega,$$
+ 其中 \(Win(p,sizeL)\) 是大小为 \(sizeL\times sizeL\)中心点在 \( p\)的矩形窗口. \par
+ 收到快速近似最相似邻域搜索算法PatchMatch \cite{Barnes:2009}的启发，利用图像的连续性特点，本章提出了利用邻域窗来提高搜索效率。假设 \(\Psi_q\)为 \(\Psi_p\)的相邻分块 ，即\(p\) 与\(q\)之间的距离与分块大小相等。如果 \(\Psi_q\) 已经完成了填充 ，且其最佳匹配快为 \(\hat{q}\)。那么根据图像的连续性特点,  相邻分块\(\Psi_p\)的最佳匹配块与 \(\hat{q}\)相邻的概率也会较大。 因此，定义邻域搜索窗口如下：
+ $$Win_n(p)=Win(\hat{q},sizeN)\cap\Omega.$$ 
+ 当\(p\)的相邻分块中还没有一个完成填充时，\( Win_n(p)=\emptyset  \)。结合局部窗口全部搜索区域定义为：
+ $$\Phi=Win_n(p)\cup Win_l(p).$$
+ 在图\ref{ch3:fig:3}中展示了搜索范围的一个例子。图\ref{ch3:fig:3}中，蓝色的分块为待填充分块，邻域搜索窗口和局部搜索窗口分别用红色和绿色标识，搜索到的最佳匹配块用黑色标识 。通过这种搜索方式，在图像填充过程中每个分块的最佳匹配块可以在更小的动态范围内被搜索到。因为邻域窗口的引入，局部窗口的大小可以设置得更小。在本章算法中，局部窗口和邻域窗口分别被设置为8\(\sim\)10 以及5\(\sim\)7 倍的分块大小。对于那些邻域窗口为零的分块，可以增大其局部搜索窗口的大小。\par
  \begin{figure}[!htbp]
  	\begin{center}
  			\includegraphics[width=0.6\columnwidth]{ch3/fig3.jpg}
  	\end{center}
-     \caption{Local window (green) and its neighbor window (red)}
- 	\label{fig:3}
+     \caption{局部搜索窗口与邻域搜索窗口}
+ 	\label{ch3:fig:3}
  \end{figure}
- In summary, the improved examplar-based image inpainting algorithm is given as follows:\\
- \textbf{Input:} image \(I\) with the unknown region \(\Omega \) and known region \(\overline{\Omega}\), the contour of \(\Omega \) is \(\partial \Omega\)\\
- \textbf{Step1:} For each patch in \(\overline{\Omega}\) centering at \(q\), compute its structure energy histogram \(H(q)\) as described in 2.1.1.\\
- \textbf{Step2:} For each pixel \(p\) on \(\partial \Omega\), compute the structure energy histogram and PSE of patch \(\Psi_p\), then calculate the filling priority of \(\Psi_p\) based on its PSE.\\
- \textbf{Step3:} Iterate the following operation until \(\overline{\Omega}\) is null:
- \begin{itemize}
-     \item Select the patch \(\Psi\) with the highest priority on \(\partial \Omega\).
-     \item Compute the dynamic search area \(\Phi\) as described in 2.2.2.
-     \item For each patch in \(\Phi\), do the PSD Test with \(\Psi\), if passed, compute the WSSD between the two patches by Eq.(4); else set the WSSD between them to the maximum directly.
-     \item Select the patch \(\Psi_m \) in \(\Phi\) with the minimum WSSD as the best-match patch.
-     \item Fill the missing pixels in \(\Psi\) by copying the corresponding pixels from \(\Psi_m\).
-     \item Update \(\partial \Omega\), for each newly added pixel \(n\) on \(\partial \Omega\), compute the filling priority of patch \(\Psi_n\).
-   \end{itemize}
- \textbf{Output:} The inpainted image.
+ 综上所述，本章提出的改进的基于样本的图像填充算法见\ref{ch3:alg:inpainting}。
+ \renewcommand{\algorithmcfname}{算法}
+\begin{algorithm}[!htb]
+\LinesNumbered
+\KwData { 图像 \(I\),其中未知区域 \(\Omega \) ,已知区域 \(\overline{\Omega}\),  \(\Omega \) 的轮廓为 \(\partial \Omega\)}
+\KwResult {填充后的图像}
+
+   \ForEach {分块 $\Psi_q \in \overline{\Omega}$ }{
+   计算分块能量直方图\(H(q)\)\;}
+   
+   \ForEach { \(\partial \Omega\)上的像素 \(p\) }{
+   	 计算以$p$为中心的分块\(\Psi_p\)\ 的结构能量直方图以及PSE\;
+   	 计算\(\Psi_p\) 的填充优先级 $Pri[\Psi_p]$\;}
+   \While{\( \Omega \neq null\) }{
+	$\Psi = \arg max_{p \in \partial \Omega}Pri[p]$\;
+    按照 \ref{sec:sub:dynamicSearch} 中的方法计算搜索窗口\(\Phi\) \;
+    \ForEach {$\Psi_q$ in \(\Phi\)}{ 
+    $d = PSD( \Psi_q,\Psi)$\;
+     	\If{d < threshold}  
+     		{利用公式\ref{chap03:equ:wssd}计算$wd[\Psi_q]=WSSD(\Psi_q,\Psi)$\;}
+     	 
+     	 \Else
+     	 	{ $wd[\Psi_q]=MAX$\;}
+     $\Psi_m = \arg min_{p \in \phi }wd[p]$ \;
+     利用 \(\Psi_m\)的对应像素填充 \(\Psi\) 中的缺失部分\;
+     更新\(\partial \Omega\)\;
+     \ForEach{\(\partial \Omega\) 上新增像素\(n\) }
+     {
+     计算 \(\Psi_n\)的填充优先级$Pri[\Psi_n]$\;
+     }
+   }
+   }
+\label{ch3:alg:inpainting}
+\caption{基于样本的图像填充}
+\end{algorithm}
+ 
+\subsection{两阶段由粗到精图像填充}
+\label{sec:2.2}
+对于图像填充算法来说，主要的困难在于保持输入图像中连续的结构和纹理信息以及尽可能减少图像填充过程的运算量。为了加快算法的速度，首先对输入图像进行预处理，降低其分辨率。 对输入图像进行DWT，选取低频子带图像作为输入图像的低分辨率版本。由于DWT的低频部分可以保留图像中的结构信息，因此在此低分辨率版本图像上进行填充可以保持原图中的结构信息。并且，由于低分辨率图像大小是原图像的四分之一， 使得填充速度是原图像的四倍。\par
+在文献\inlinecite{LeMeur:2012}中，提出了一种与本章算法类似的两阶段填充算法，不同之处是文献\inlinecite{LeMeur:2012}算法使用超分辨率算法从填充后低分辨图像中恢复到原图像分辨率。虽然低分辨率下填充算法可以更快，但是由于随后的超分辨率算法耗时远大于填充算法那，造成整个算法并没有加快速度 。与文献\inlinecite{LeMeur:2012}不同，本章算法中输入图像可以与低分辨率图像同时填充。例如，在图~\ref{ch3:fig:4}中，左边的图像\(C\)为输入图像的低分辨率版本，右边图像为相应的输入图像\(O\); 假如分块 \(\Psi_c\) in \(C\) located at \((x,y)\), its best-match patch \(\Psi_{\hat{c}}\) is found to be located at \((i, j)\), then the corresponding patch \(\Psi_o\) in \(O\) located at \((2x, 2y)\) can be inpainted via the corresponding match patch \(\Psi_{\hat{o}}\) located at \((2i, 2j)\).
+\begin{figure}[!htbp]
+	\begin{center}
+			\includegraphics[width=0.8\columnwidth]{ch3/fig4.jpg}
+	\end{center}
+    \caption{Image inpainting based on the coarse-version image}
+	\label{ch3:fig:4}
+\end{figure}
+The flow chart of the proposed two-step inpainting algorithm is shown in Fig.5. In the first inpainting, both the coarse-version and the original input image can be inpainted synchronously, but only the inpainting result at original resolution is required for the following step.\par
+% For one-column wide figures use
+\begin{figure}[!htbp]
+\begin{center}
+% Use the relevant command to insert your figure file.
+% For example, with the graphicx package use
+  \includegraphics[width=0.5\textwidth]{ch3/fig5.jpg}
+% figure caption is below the figure
+\end{center}
+\caption{Flow chart of two-step inpainting}
+\label{fig:5}       % Give a unique label
+\end{figure}
+We can see that the first-time inpainted image(shown in the middle of Fig.5) can recover most of the structures and textures, but some artifacts exist in the edge regions (marked by the red rectangle with a zoomed-in version shown in the right-top). To overcome this defect, the second inpainting is performed only in these areas. The edge regions with artifacts can be located through PSE. The pixels that need to be inpainted twice are defined as \(\forall p \in \Omega, P_e(p)>E_{Thres}\). In this paper, \(E_{Thres}\) is set to \(0.015*Max_{q\in{I}}{(P_e(p)})\). In the middle of Fig.5, we can see that the updated mask for the second inpainting is smaller than the original one, and only covers those areas with artifacts. In the first inpainting, the missing regions are firstly estimated by the prefill method, then the output of the first inpainting will be used as the input of the second inpainting. In the second inpainting, the missing regions are already been estimated by the first inpainting, so the prefilling process can be omitted.
+ 
 
 
  \section{实验结果与分析}
- \label{results}
+ \label{cha3:results}
+Our algorithm is tested on a variety of natural images. In Fig.6, some of the results are demonstrated and compared with the existing state-of-the-art approaches \cite{Criminisi04regionfilling}, \cite{Xu:2010}. In the following examples, the patch size is set to \(7\times7\) in the coarse-version images and \(9\times9\) in the original ones. The size of \(N_s(p)\) is set to 51 as in [3]. The algorithm is implemented with C++ programming language. All the experiments are run on a PC equipped with an Intel 2.67 GHz CPU.\par
+\begin{figure*}[!htbp]
+\begin{center}
+% Use the relevant command to insert your figure file.
+% For example, with the graphicx package use
+  \includegraphics[width=0.8\textwidth]{ch3/fig6f.jpg}\\
+  (a) Mask\quad\quad\quad\quad\quad\quad(b) Criminisi\cite{Criminisi04regionfilling}\quad\quad\quad\quad\quad\quad(c) Xu\cite{Xu:2010}\quad\quad\quad\quad\quad\quad(d) Proposed
+% figure caption is below the figure
+\end{center}
+\caption{Inpainted results and comparison with Criminisi\cite{Criminisi04regionfilling} and Xu\cite{Xu:2010}}
+\label{fig:6}       % Give a unique label
+\end{figure*}
+In Fig. 6, we can see that in the images inpainted by our method, the missing regions can be effectively filled with continuous structures and textures. Our results outperform those inpainted by \cite{Criminisi04regionfilling}, and are close to the results in \cite{Xu:2010}. In our implementation of \cite{Criminisi04regionfilling}'s method, the patch size is set to \(9\times9\), some results are different from those given in \cite{Xu:2010}. The comparison of the computation time is shown in Tab.1, where the images are corresponding to those of Fig.6 from top to down. Because of the lower computational complexity, our algorithm is much faster than both \cite{Criminisi04regionfilling} and \cite{Xu:2010}, thanks to the multi-resolution two-step inpainting, the dynamic search window and PSD test speed up the schemes.
+\begin{table}[!htbp]
+% table caption is above the table
+\caption{Comparison of computation time}
+\label{tab:1}       % Give a unique label
+% For LaTeX tables use
+\begin{tabular}{lllll} \hline
+\multicolumn{1}{c}{\multirow {2}{*}{Image}}&\multicolumn{1}{c}{\multirow {2}{*}{Unknown Pixels}}& \multicolumn{3}{c}{Computation time(unit: second)}\\
+\cline{3-5}
+\multicolumn{1}{c}{}&\multicolumn{1}{c}{}& \multicolumn{1}{c}{Criminisi[2]} &Xu[3]&Proposed\\
+\hline
+\multicolumn{1}{c}{Pyramid} & \multicolumn{1}{c}{19636} & \multicolumn{1}{c}{83} &\multicolumn{1}{c}{143}& \multicolumn{1}{c}{9}\\				
+\multicolumn{1}{c}{Plane} & \multicolumn{1}{c}{17914} & \multicolumn{1}{c}{82} &\multicolumn{1}{c}{130}& \multicolumn{1}{c}{10}\\				
+\multicolumn{1}{c}{Riding} & \multicolumn{1}{c}{23161} & \multicolumn{1}{c}{121} &\multicolumn{1}{c}{165}& \multicolumn{1}{c}{25}\\
+\multicolumn{1}{c}{Eagle} & \multicolumn{1}{c}{14837} & \multicolumn{1}{c}{84} &\multicolumn{1}{c}{108}& \multicolumn{1}{c}{17}\\
+\multicolumn{1}{c}{Beach} & \multicolumn{1}{c}{6281} & \multicolumn{1}{c}{17} &\multicolumn{1}{c}{45}& \multicolumn{1}{c}{4}\\
+\hline
+\end{tabular}
+\end{table}\par
 
+\begin{figure}[!htbp]
+\begin{center}
+% Use the relevant command to insert your figure file.
+% For example, with the graphicx package use
+  \includegraphics[width=0.5\textwidth]{ch3/fig7.jpg}
+% figure caption is below the figure
+\end{center}
+\caption{Comparision of proposed method with \cite{LeMeur_2011}, left:mask, middle:inpainted by\cite{LeMeur_2011}, right:inpainted by proposed method}
+\label{fig:7}       % Give a unique label
+\end{figure}
+
+\begin{figure}[!htbp]
+\begin{center}
+% Use the relevant command to insert your figure file.
+% For example, with the graphicx package use
+  \includegraphics[width=0.5\textwidth]{ch3/fig8.jpg}
+% figure caption is below the figure
+\end{center}
+\caption{Comparision of proposed method with \cite{kwokFast}, left:mask, middle:inpainted by\cite{kwokFast}, right:inpainted by proposed method}
+\label{fig:8}       % Give a unique label
+\end{figure}
+
+\begin{figure}[!htbp]
+\begin{center}
+% Use the relevant command to insert your figure file.
+% For example, with the graphicx package use
+  \includegraphics[width=0.5\textwidth]{ch3/fig9.jpg}
+% figure caption is below the figure
+\end{center}
+\caption{Comparision of proposed method with \cite{LeMeur:2012}, left:mask, middle:inpainted by\cite{LeMeur:2012}, right:inpainted by proposed method}
+\label{fig:9}       % Give a unique label
+\end{figure}\par
+Some other tough examples in \cite{LeMeur_2011}, \cite{kwokFast} and \cite{LeMeur:2012} are also tested with the proposed algorithm. The inpainting results are shown in Figs. 7, 8 and 9 respectively. As illustrated in these figures, the sharp and obvious edges can be well preserved in the inpainted images. This is because the GST-based filling order favours those patches with strong structures. From Figs. 8 and 9, we can see that the proposed method sometimes produces repeated texture patterns, especially in images mainly with textures. This is caused by the neighbor window introduced in the best-match searching process.
 
  \section{本章小结}
- \label{conclusions}
+ \label{cha3:conclusions}
+In this paper, a fast two-step examplar-based image inpainting algorithm is presented. The first inpainting is based on the coarse version of the input image, in which the high-frequency details are filtered by DWT. Then the second inpainting is performed only in the areas that contain edges at the original resolution. In the second inpaiting, results of first inpainting are treated as prefill result, and are computed as a part of the \(WSSD\), in such a way that the structural information of the known regions of the input image can be well propagate into the missing regions. The main merits of this algorithm are in the following four points:\begin{itemize}
+                                \item first, the DWT based two-step inpainting scheme can quickly obtain the inpainted results at the original resolution;
+                                \item second, the GST based filling order enables sharp structures to be preserved in the inpainted result;
+                                \item third, the prefilling scheme based on the image locality and continuity is more effective and accurate;
+                                \item forth, using the dynamic search window and PSD test, the best-match searching process can be smarter and faster.
+                              \end{itemize}
+Compared with the state-of-the-art algorithms, our method is simpler and easier to implement, and the results are comparable, but the computation cost is much lower. In some applications, real-time image inpainting is required and can be done via parallelization and GPU computing \cite{kwokFast}. We will consider this in the future work.
