@@ -20,25 +20,32 @@
 
 综上所述，本章所提出的针对移动相机的视频背景减除快速算法的主要特点和优势在于：
 \begin{enumerate}
-\item 本章所提出的算法将现有的图像变形技术和基于采样的无参数背景模型方法结合到移动相机背景减除算法中
-\item 本章所提出的算法利用稀疏光流和SSRG来区分相机引起的运动以及前景引起的运动，相比于基于稠密光流和像素点轨迹的方法，本章所提出的方法速度更快但效果与之接近
-\item 通过GPU和CPU上的混合编程，本章算法处理大小为640$\times$480像素的视频速度可以达到8帧每秒，这是基于稠密光流的算法\cite{gbsuperpixel}的45倍
+\item 本章所提出的算法将现有的图像变形技术和基于采样的无参数背景模型方法结合到移动相机背景减除算法中；
+\item 本章所提出的算法利用稀疏光流和SSRG来区分相机引起的运动以及前景引起的运动，相比于基于稠密光流和像素点轨迹的方法，本章所提出的方法速度更快但效果与之接近；
+\item 通过GPU和CPU上的混合编程，本章算法处理大小为640$\times$480像素的视频速度可以达到8帧每秒，这是基于稠密光流的算法\cite{gbsuperpixel}的45倍。
 \end{enumerate}
 
 
  \section{相关工作}
  \label{ch4:sec:relatedWorks}
- In Ref.~\citenum{Chien2002Efficient}, a background registration technique is proposed to construct a reliable background image. The moving object region is then obtained by comparing the current frame with the constructed background image. This algorithm assumes that the camera stays still. So, it cannot handle the moving camera cases. In Ref.~\citenum{Kim2001Moving}, a user-assisted moving object segmentation algorithm for videos is proposed. The proposed method comprises of intra-frame and inter-frame segmentation modules. The former module incorporates the user interaction to define a high level semantic object of interest to be segmented and detects the precise object boundary. The inter-frame segmentation module involves boundary and region tracking to capture the moving objects with the accurate object boundary information.  Meier and Ngan\cite{Meier1998Automatic} proposed an automatic method for moving objects extraction using a binary image model. This model is obtained from an edge image and is updated every frame. However, the segmentation results depend on the success of the initial segmentation result at the first frame. \par
-Barnich et al. proposed a static camera background subtraction algorithm, called ViBe based on non-parametric sample consensus model \cite{Barnich2011ViBe}. ViBe relies on the pixel-level sampling of colors to create the background model. Although far less complex than methods based on probabilistic models \cite{GMMPAMI}, it outperforms in terms of both quality and efficiency, especially in videos with dynamic backgrounds. Hofmann et al. improved the performance of sample-based model by identifing unstable regions and readjusting distance thresholds and adaptation rates in these regions using feedback mechanisms \cite{pbas} . In a recent work \cite{subsenseTIP}, the authors proposed a more effective feedback mechanism in a new method, called SuBSENSE. This algorithm outperformed other state-of-the-art methods on the 2012 and 2014 versions of the CD.net dataset in terms of overall F-score \cite{CD2014}, but it cannot handle moving camera cases directly. \par
 
-In previous works, to estimate the camera motion, either the homography matrix or the fundamental matrix was employed. In Ref.~\citenum{Multitransform}, the authors used a multi-transformational model to solve this problem. Their algorithm selects an appropriate model from the homography matrix and fundamental matrix according to the geometric relation between the consecutive frames. If the homography is selected, a 1-1 homography is estimated to compensate the camera motion. On the other hand, if the fundamental matrix is selected, a homography matrix with the least mean squared projection error is chosen from a series of homographies. Though this selected homography matrix has the least error, it is applied to the whole image. We introduce ASAP warping technique \cite{Liu2009ASAP,Liu_2013ASAP} to estimate and compensate the camera motion. So far as we have known, it is the first time that image warping technique is introduced in background subtraction for moving cameras. Compared with the original ASAP algorithm in Ref.~\citenum{Liu_2013ASAP}, we use a more simple data term in the warping energy function. In addition, we also propose a more efficient way to dynamically set the per-cell shape-preserving weight coefficient. \par
+ \subsection{静态相机视频背景减除}
+ \label{ch4:sec:sub:scbs}
 
-To generalize the orthographic camera model, the work of Ref.~\citenum{kwak2011Generalized} used a Bayesian filtering framework to estimate appearance and motion models for background subtraction at the pixel level. This approach requires a high-quality segmentation at the first frame in order to reliably track subsequent frames. This can be problematic for long sequences containing complicated camera motions. In Ref.~\citenum{gbsuperpixel}, a superpixel-based density estimation method is proposed. In this algorithm, the appearance and motion models are built on superpixel level, and pixelwise forground/background labels are obtained using the binary belief propagation. As reported in Ref.~\citenum{gbsuperpixel}, it takes approximately 6 seconds to process a frame.\par
+ 在文献~\inlinecite{Chien2002Efficient}提出了一种背景图像注册技术，用于建立可靠的背景图像。通过比较当前图像帧与所创建的背景图像可以获得前景结果。该算法假设相机是固定的，因此无法处理移动相机情况。文献 ~\inlinecite{Kim2001Moving}提出了一种用户交互的视频移动前景提取算法。该算法主要有帧内分割处理和帧间分割处理两部分组成。其中，帧内处理模块需要通过用户交互来定义那些用户感兴趣的语义对象，并且获得准确的对象边界。帧间处理模块则通过边界和区域跟踪来获得移动对象的准确边界信息。 Meier和 Ngan\cite{Meier1998Automatic} 提出了一种基于二进制图像模型的自动移动对象检测算法。该二进制模型可以通过图像的边缘信息提取，并在每帧图像进行更新。然而该算法提取前景结果的准确度对第一帧初始结果十分敏感。当第一帧初始结果不准确时，该算法的准确度会受到重要影响 \par
+Barnich等人提出了一种基于无参数采样一致模型的背景减除算法，ViBe \cite{Barnich2011ViBe}。ViBe算法利用像素级的颜色空间采样值建立背景模型。该算法的背景模型比基于概率模型的算法\cite{GMMPAMI}更为简单，但是在前景检测准确度以及计算速度上却优于后者，特别是对于那些包含动态背景的视频中。 Hofmann等人对ViBe算法进行了改进，提出了PBAS算法。该算法通过定位不稳定区域并且以反馈的方式调整不稳定区域内模型的距离门限、更新率等参数使得算法的前景提取准确度进一步提高。随后，文献 \inlinecite{subsenseTIP}提出了一种基于更加有效的反馈式模型参数更新机制的算法，SuBSENSE。在公开的视频背景减除测试数据库CD.Net 2012以及2014中，该算法的各项指标排名均名列前茅。但是由于该算法是针对静止相机的，并不能直接用于处理移动相机情况下的背景减除任务。\par
 
-Another category of the algorithms for moving camera background subtraction is the point trajectory based. In Ref.~\citenum{iccv2009}, an algorithm based on the matrix factorization in a sliding window fashion is proposed. In this method, the background trajectories are identified using RANSAC to robustly estimate the subspace. In Ref.~\citenum{Cui2012}, Cui et al. tried to decompose the point trajectory matrix into a low rank component to represent the background and a group-sparse component to represent the foreground . In Ref.\~citenum{SubspaceTracking}, an online method for background modeling of dynamic point trajectories via tracking of a linear subspace describing of the background motion is proposed. According to the authors, the average per-frame running time on Hopkins dataset \cite{HopKinsDataSet} is about 1.8 seconds.\par
+\subsection{移动相机视频背景减除}
+\label{ch4:sec:sub:mcbs}
+在之前的移动相机背景减除算法中，一般用单应性 矩阵或基础矩阵来估算相机的运动。在文献~\inlinecite{Multitransform}，作者提出使用多变换模型来处理相机的运动。该算法根据相邻图像帧的几何关系从单应性矩阵模型和基础矩阵中选择一个合适的模型。当选择单应性矩阵模型时，可以通过一个全局一对一的矩阵建立相邻帧间像素之间的关系；而当选择基础矩阵时，由于基础矩阵无法建立图像间像素一对一的关系，因此只能在一系列单应性矩阵中选取均方误差最小的单应性矩阵来估算相机运动。 在这种情况下，虽然最后估算的单应性矩阵均方差最小，但是该矩阵仍然被应用到图像中每个像素。一般情况下，这不符合不存在一对一单应性矩阵描述任意相机运动情况下的限制。在本章算法中，通过引入ASAPW技术 \cite{Liu2009ASAP,Liu_2013ASAP}来估算并补偿相机运动。据作者所知，之前还没有其他视频背景减除算法利用图像变形技术来估算相机运动。在原有ASAPW算法基础上，本章算法在变形能量方程中使用更简单的数据项，并且提出一种更加有效地动态参数设置方法自适应调整各个单元的形状保持权重系数。 \par
+
+文献~\inlinecite{kwak2011Generalized}使用贝叶斯滤波框架来估算视频帧图像中像素的运动以及外观变化模型，提出了一种通用的移动相机视频背景减除算法。该算法需要在第一帧获得较高准确度的前景分割结果，并在随后的图像帧中对前景进行可靠跟踪。因此文献~\inlinecite{kwak2011Generalized}的算法无法处理那些包含复杂运动的长视频。文献~\inlinecite{gbsuperpixel}提出了一种基于超像素概率密度估计的视频背景减除算法，该算法建立超像素级别的运动模型和外观模型，并通过二进制置信传播（binary belief propagation）获得像素级别的前景检测结果。由于算法复杂度较高，该算法处理一帧图像需要6秒。\par
+
+另一类针对移动相机的视频背景减除算法依靠像素点轨迹信息来估算视频中的前景。文献~\inlinecite{iccv2009}提出了一种基于滑动窗口的像素点轨迹矩阵分解的算法。该算法使用RANSAC\cite{rasac}算法估计背景像素点轨迹。文献~\inlinecite{Cui2012}提出一种将点轨迹矩阵分解为低秩部分（背景）和群稀疏部分（前景）。文献~\inlinecite{SubspaceTracking}提出一种基于像素点轨迹的在线背景建模方法，该方法通过跟踪描述背景运动的线性子空间建立背景模型。 在效率方面，文献~\inlinecite{SubspaceTracking}中算法需要1.8秒左右时间处理Hopkins数据集\cite{HopKinsDataSet} 中的一帧图像。\par
+
  \section{算法描述}
  \label{ch4:sec:algorithm}
- An overview flow chart of the proposed method is shown in Figure 1. Firstly, the input frame is over segmented into superpixels using the algorithm proposed in Ref.~\citenum{superpixel}. Then the KLT algorithm \cite{KLT} is employed to calculate the sparse optical flow of the center pixels of each superpixel. The camera motion is estimated via ASAP warping, and compared with the superpixel flow. An SSRG algorithm is proposed to extend these sparse motion cues to the entire frame. In this way, we can obtain a raw segmentation based on the motion cues. On the other hand, by comparing the warped input frame with the non-parametric background model, we can obtain another raw segmentation based on the appearance model. Then, a superpixel-based temporal coherent MRF optimization framework is built to refine these raw results. The final label for each superpixel can be obtained by solving an energy minimization problem via graph cuts \cite{graphcut04}, and this final result is used to update the appearance background model.
+ 本章提出算法的流程流程图如图~\ref{ch4:fig:1}所示。首先，利用文献~\inlinecite{superpixel}的算法将输入视频图像帧分割为若干超像素；随后使用KLT算法~\cite{KLT}计算每个超像素中心点的稀疏光流；通过ASAPW来估算相机运动情况，将每个超像素光流与估算的相机运动进行比较，获得若干稀疏的背景种子点；利用SSRG算法将这些稀疏运动线索扩散到整幅图像，得到一个基于运动线索的粗略前景分割结果。另一方面，利用ASAPW算法估算的相机运动对输入视频帧图像进行运动补偿，并将补偿后的图像帧与非参数的背景模型进行比较，从中可以得到另一个基于外观模型的粗略前景结果。最后，通过基于超像素的时域相关MRF优化过程来对基于运动线索和基于外观线索的两个粗略前景分割结果进行优化，通过图割算法\cite{graphcut04}求解能量最小化问题得到每个超像素最终的前景分割结果。
 
 \begin{figure}[!htbp]
 \begin{center}
@@ -50,13 +57,14 @@ Another category of the algorithms for moving camera background subtraction is t
 % figure caption is below the figure
 \end{center}
 \caption{Overview of the proposed algorithm. The main characteristics of this paper are denoted by yellow.}
-\label{fig:1}       % Give a unique label
+\label{ch4:fig:1}       % Give a unique label
 \end{figure}
 
 
-\subsection{ASAP Warping-based motion compensation}
-\label{sec:3.1}
-In Ref.~\citenum{Liu_2013ASAP}, a warping-based method was introduced to compensate the motion between two consecutive frames for video stabilization. We briefly describe the algorithm here. As shown in Figure 2, each frame is divided by a uniform grid mesh.
+\subsection{基于ASAPW的相机运动补偿}
+\label{ch4:sec:asap}
+文献~\inlinecite{Liu_2013ASAP}提出了一种用于视频稳定的基于变形的相邻帧图像运动补偿算法。如图~\ref{ch4:fig:2}所示，该算法将每一帧图像划分为均匀网格。相邻图像帧中的一对特征点\(p\) 和 $\hat{p}$ 分别位于网格 \(i\) 和 \(j\)当中。网格$i$h和$j$的四个顶点分别为${V}_{p}=[{v}^{1}_{p}$,${v}^{2}_{p}$,${v}^{3}_{p}$,${v}^{4}_{p}]$， ${\hat{V}_{p}}=[\hat{v}^{1}_{p}$,$\hat{v}^{2}_{p}$,$\hat{v}^{3}_{p}$,$\hat{v}^{4}_{p}]$。因此，\(p\) 可以用网格\(i\)的四个顶点坐标的双线性差值表示：$p=\sum_{p}{{V}_{p}{w}_{p}}$。
+
  \begin{figure}[!htbp]
 \begin{center}
 % Use the relevant command to insert your figure file.
@@ -65,20 +73,26 @@ In Ref.~\citenum{Liu_2013ASAP}, a warping-based method was introduced to compens
   \par \quad\quad\quad(a)\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad(b)
 % figure caption is below the figure
 \end{center}
-\caption{(a) The data term is defined according to the fact that a pair of matched features (p, \^{p}) should be represented by the same bilinear interpolation of their four enclosing vertices. (b) The smooth term requires each triangle follow a similarity transformation. The images are borrowed from Ref.~\citenum{Liu_2013ASAP}.}
+
+\caption{ASAPW 示意图~\citenum{Liu_2013ASAP}}
 \label{fig:2}       % Give a unique label
 \end{figure}
-The corresponding matched feature points \(p\) and $\hat{p}$ in the two frames are within the cells \(i\) and \(j\), respectively. The four corners of cells \(i\) and \(j\) are denoted as ${V}_{p}=[{v}^{1}_{p}$,${v}^{2}_{p}$,${v}^{3}_{p}$,${v}^{4}_{p}]$ and ${\hat{V}_{p}}=[\hat{v}^{1}_{p}$,$\hat{v}^{2}_{p}$,$\hat{v}^{3}_{p}$,$\hat{v}^{4}_{p}]$, respectively. Thus, \(p\) can be expressed as the bilinear interpolation of the four corners of cell \(i\), $p=\sum_{p}{{V}_{p}{w}_{p}}$ .The warping is solved via minimizing the energy function composed of the data term ${E}_{d}$ and smooth term ${E}_{s}$.
-${E}_{d}$ is defined as
-$${E}_{d}(\hat{V}) = \sum_{p}{\parallel\hat{V}_{p}{w}_{p}- \hat{p}\parallel}^{2} \eqno{(1)},$$
-which makes sure the \(p\) and $\hat{p}$ have the same bilinear interpolation of their corresponding cell corners. And ${E}_{s}$ is defined as
+为了补偿相机运动，通过图像变形对当前帧图像进行变换，具体的变形通过求解能量最小化问题实现。
+\begin{equation}\label{ch4:equ:asap}
+  E(\hat{V}) = {E}_d(\hat{V}) + \alpha{E}_{s}(\hat{V})
+\end{equation}
+其中$E_d$为数据项，定义为：
+\begin{equation}\label{ch4:equ:dataterm}
+  {E}_{d}(\hat{V}) = \sum_{p}{\parallel\hat{V}_{p}{w}_{p}- \hat{p}\parallel}^{2}
+\end{equation}
+主要作用是保证 \(p\) 与 $\hat{p}$可以用相同的基于网格顶点的双线性差值表示。 公式~\ref{ch4:equ:asap}中$E_s$为平滑项，具体定义为：
 $${E}_{s}(\hat{V} )= \sum_{\hat{v}}\parallel\hat{v}-\hat{v}_{1} - s{R}_{90}(\hat{v}_{0} - \hat{v}_{1})\parallel^{2}, s=\frac{\parallel{v}-{v}_{1}\parallel}{\parallel{v}_{0}-{v}_{1}\parallel},{R}_{90} = \left(\begin{array}{cc}{0} &{1} \\{-1} &{0}\end{array}\right),$$
-which is a shape-preserving term, that requires the triangle of the neighbour vertices to follow a similarity transformation.  The overall energy combines the data term and smooth term, with a weight factor $\alpha$ to control the amount of regularization.
-$$E(\hat{V}) = {E}_d(\hat{V}) + \alpha{E}_{s}(\hat{V}).\eqno{(2)}$$
-Since the energy function is a quadric, the warped position of the corner vertices $\hat{Vp}$ can be obtained by solving the sparse linear system. For each cell, a homography is determined by the four corner vertices . The motion of the whole frame is represented by a set of spatially-variant homographies on a 2D grid \cite{Liu_2013ASAP}, which is more robust compared with other methods using only one global homography.\par
- In Eq.(2), the number of the date term constraints will linearly increase with the number of the matched feature points. Large number of the matched feature points may slow down the solving of the sparse linear system. For this reason, we propose to estimate the homographies for cells that contain sufficient feature points. For these cells, denoted as $h$, the date term is defined as,
+主要作用是保证变形后的图像中相邻三角形的变换为相似变换，保持图像的形状不变。
+公式~\ref{ch4:equ:asap}中的$\alpha$为权重因子，调整数据项和平滑项之间的权重比值。由于公式~\ref{ch4:equ:asap}中的方程是一个线性方程组，变形后的网格角点坐标$\hat{Vp}$可以通过求解稀疏现行方程组得到。对于每个网格，利用网格的四个顶点可以得到一个单应性矩阵。整幅图像的运动可以通过这些二维网格上的一系列单应性矩阵表示。与基于全局单应性矩阵的其他运动估计算法相比，ASAPW的效果要更好~\cite{Liu_2013ASAP}。 \par
+从图~\ref{ch4:equ:dataterm}可以看出，随着匹配特征点数量的增加，数据项所包含的约束会随着线性增长。当匹配的特征点数太多时，会造成求解大规模稀疏线性方程组的速度变慢，从而影响整个算法的效率。基于此原因，本章算法提出利用网格内特征点直接估算网格内单应性矩阵，从而得到网格顶点变形后坐标。对于网格内包含足够特征点以估算网格内单应性矩阵的网格，将其标记为$h$,他们的数据项定义为：
+ 
  $$E^{h}_{d}(\hat{V}) = \sum_{p\in h}{\parallel H_{p}V_{p} - \hat{V_{p}}\parallel}^2$$
-where $H_{p}$ is the estimated homography of the cell that encloses $p$. The minimum number of matched feature points to estimate a $3\times3$ homography is 4, in our implementation, we set it as 10 for robust estimation.  For those cells do not meet the minimum matched feature points requirement for homography estimation, we use the bilinear interpolation based data  term as in Eq.(1). Finally, the data term in our warping algorithm is defined as,
+其中 $H_{p}$ 为包含$p$的顶点的网格单元的单应性矩阵。估算 The minimum number of matched feature points to estimate a $3\times3$ homography is 4, in our implementation, we set it as 10 for robust estimation.  For those cells do not meet the minimum matched feature points requirement for homography estimation, we use the bilinear interpolation based data  term as in Eq.(1). Finally, the data term in our warping algorithm is defined as,
 $${E}_{d}(\hat{V}) = \sum_{p \notin h}{\parallel\hat{V}_{p}{w}_{p}- \hat{p}\parallel}^{2} +
 \sum_{p\in h}{\parallel {H_{p}V_{p} - \hat{V_{p}}}\parallel}^2.$$
 To select the proper weight coefficient \(\alpha\) in Eq.(2), the authors in Ref.~\citenum{Liu_2013ASAP} equally discretized $\alpha$ into 10 values between 0.3 and 3. The one with the minimum warping error is selected at last. This method is inefficient. Different to their method, our method adaptively sets the weight coefficient for cells  $c \in h$ using the warping error, $e_{c} = {\parallel H_{c}p_{c} - \hat{p_{c}} \parallel}^2 $, as follows, $\alpha_{c\in h} = s_{1}\exp({e_{c}/avgErr})+ s_{2}$, where $s_{1}$ is set to 0.15, $avgErr$ is the average warping error of $h$, and $s_{2}$ is a truncation factor making $\alpha_{h} \in [0.3,3.0]$. We set $\alpha_{c \notin h}$ to a constant value 1.0. In this way, the data term  is trusted more for the cells with a smaller fitting error, while the stronger regularization is performed on cells with a less reliable homography.
