@@ -239,7 +239,7 @@ $$ T(f_{t}(s)) = v_{3}(1-\delta(F_{t}(s)-F_{t-1}(\hat{S_{t-1}}(s))))\cdot e^{-\f
 在本章的实验中，根据实验中视频大小以及文献~\cite{Liu_2013ASAP}的建议,在ASAPW过程中将输入图像帧分为 $8\times8$ 的均匀网格。算法~\ref{ch4:alg:ssrg}中的区域增长门限 $threshold_{rg}$ 的值设置为每帧图像中相邻超像素颜色距离的平均值。公式~\ref{ch4:equ:mrf}中的权重参数设置为$\lambda_{1} = 0.5, \lambda_{2} = 0.35, \lambda_{3} = 0.15$。公式~\ref{ch4:equ:fgprop}中的可信度权重因子$c$ 设置为$0.75$。在所有视频的测试中均使用同样的参数配置。 \par
 在图~\ref{ch4:fig:result}中，给出了本章算法在部分视频图像中的测试结果以及与当前领先的算法\cite{kwak2011Generalized,Multitransform,5.8s}的比较。其中图~\ref{ch4:fig:result}的第一行分别为为cars2视频的第20帧图像，cars3视频的第19帧图像， cars4视频的第40帧图像，people1视频的第40帧图像以及people2视频的第16帧图像。图~\ref{ch4:fig:result}的第二行为正确的前景结果，图~\ref{ch4:fig:result}的第三至第六行为文献~\inlinecite{Multitransform,kwak2011Generalized,5.8s}中算法的结果以及本章算法的结果，其中用暗色表示算法检测出的背景区域，前景区域保持原来的颜色。
 
-\begin{figure}[!htbp]
+\begin{figure}[htb]
 \begin{center}
 % Use the relevant command to insert your figure file.
 % For example, with the graphicx package use
@@ -281,61 +281,71 @@ $$ T(f_{t}(s)) = v_{3}(1-\delta(F_{t}(s)-F_{t-1}(\hat{S_{t-1}}(s))))\cdot e^{-\f
 \label{ch4:fig:result}       % Give a unique label
 \end{figure}
 
-文献~\inlinecite{kwak2011Generalized,Multitransform}的结果来自于文献~\citenum{Multitransform}，文献~\inlinecite{5.8s} 的源代码来自于作者的个人网站\footnote{https://sites.google.com/site/homekmyi/}。从图~\ref{ch4:fig:result}中可以看到，本文算法与文献~\inlinecite{Multitransform}算法提取的前景相对于文献\cite{kwak2011Generalized,5.8s}的结果 要更加准确。为了进行定量分析，使用提取的前景像素与正确值之间比较得到的精度、召回率以及F-Score指标来评估算法的有效性。其中精度$P$定义为，
-$ P = TP/(TP+FP)$，召回率$R$定义为$R = TP/(TP+FN)$，F-Score定义为$F = (2 \times P \times R)/(P + R)$，其中$TP,FP,FN,TN$分别为前景结果与正确前景比较后统计的正确前景像素数量，错误前景像素数量，错误背景像素数量以及正确背景像素数量。从定义可以看出，这三个指标的最大值均为1，且指标越高说明算法的准确度越好。表~\ref{ch4:tab:result1}中列出了本章算法与文献~\inlinecite{kwak2011Generalized,Multitransform}算法在12个视频中得到的平均精度、召回率和F-Score值。从表~\ref{ch4:tab:result1}中可以看出，在大多数情况下，本章算法得到的前景准确度高于其他算法，并且本章算法在三个指标上均得到了最高的平均值。 在使用稀疏光流和基于超像素的MRF优化的情况下，本章算法的平均 F-score值仍然比文献~\inlinecite{Multitransform}中基于稠密光流和像素级MRF的算法略高。\par
+文献~\inlinecite{kwak2011Generalized,Multitransform}的结果来自于文献~\citenum{Multitransform}，文献~\inlinecite{5.8s} 的源代码来自于作者的个人网站\footnote{https://sites.google.com/site/homekmyi/}。从图~\ref{ch4:fig:result}中可以看到，本文算法与文献~\inlinecite{Multitransform}算法提取的前景相对于文献\cite{kwak2011Generalized,5.8s}的结果 要更加准确。为了进行定量分析，使用提取的前景像素与正确值之间比较得到的精度、召回率以及F-Score指标来评估算法的有效性。其中精度$P$定义为:
+$$ P = \frac{TP}{(TP+FP)}$$
+召回率$R$定义为：
+$$R = \frac{TP}{(TP+FN)}$$
+F-Score定义为
+$$F = \frac{2 \times P \times R}{(P + R)}$$
+其中$TP,FP,FN,TN$分别为前景结果与正确前景比较后统计的正确前景像素数量，错误前景像素数量，错误背景像素数量以及正确背景像素数量。从定义可以看出，这三个指标的最大值均为1，且指标越高说明算法的准确度越好。表~\ref{ch4:tab:result1}中列出了本章算法与文献~\inlinecite{kwak2011Generalized,Multitransform}算法在12个视频中得到的平均精度、召回率和F-Score值。从表~\ref{ch4:tab:result1}中可以看出，在大多数情况下，本章算法得到的前景准确度高于其他算法，并且本章算法在三个指标上均得到了最高的平均值。 在使用稀疏光流和基于超像素的MRF优化的情况下，本章算法的平均 F-score值仍然比文献~\inlinecite{Multitransform}中基于稠密光流和像素级MRF的算法略高。\par
 
 由于本章的算法基于运动线索和背景模型，当输入视频的第一帧图像中已经包含前景对象时，背景模型会在初始化时将前景标为背景。这会造成本章算法提取的前景结果在视频的前几帧包含一些错误的前景。随着本章算法继续运行，这些错误前景像素会随着背景模型更新以及包含运动线索的全局优化过程快速消失。当输入视频的第一帧不包含前景对象时，并不会存在上诉的问题。在实验中对比时，忽略将每个测试视频的前五帧图像。由于本章算法的运动线索来自于SSRG算法，并假设可追踪的大部分特征点来自于背景。在自然环境中拍摄的大多数视频均满足这一假设，但是当视频中不满足这一假设时，例如行走的人的局部特写镜头，本章算法可能无法得到基于运动线索的粗略结果，从而造成算法无法得到准确的前景。\par
 
 
 \begin{table}[htb]
-\resizebox{\textwidth}{!}{
+
 % table caption is above the table
-\caption{Average $precision(P)$, $recall (R)$, and $F-score (F)$ values for our and state-of-the-art methods. The best scores are denoted in bold. }
+\caption{算法准确度比较，最好的结果用粗体表示}
 \label{ch4:tab:result1}       % Give a unique label
 % For LaTeX tables use
+\resizebox{\textwidth}{!}{
 \begin{tabular}{ccccccccccccc} \hline
-\multicolumn{1}{c|}{\multirow {2}{*}{}}&\multicolumn{3}{c|}{ours}& \multicolumn{3}{c|}{\citenum{Multitransform}}& \multicolumn{3}{c|}{\citenum{kwak2011Generalized}}& \multicolumn{3}{c}{\citenum{5.8s}}\\
+\multicolumn{1}{c}{\multirow {2}{*}{}}&\multicolumn{3}{c}{本章算法}& \multicolumn{3}{c}{\inlinecite{Multitransform}算法}& \multicolumn{3}{c}{\inlinecite{kwak2011Generalized}算法}& \multicolumn{3}{c}{\inlinecite{5.8s}算法}\\
 \cline{2-13}
-\multicolumn{1}{c|}{}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c|}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c|}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c|}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}\\
+\multicolumn{1}{c}{}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}\\
 \hline
-\multicolumn{1}{c|}{vcar}&\multicolumn{1}{c}{\textbf{0.940}}&\multicolumn{1}{c}{\textbf{0.887}}&\multicolumn{1}{c|}{\textbf{0.913}}&\multicolumn{1}{c}{0.839}&\multicolumn{1}{c}{0.856}&\multicolumn{1}{c|}{0.846}&\multicolumn{1}{c}{0.595}&\multicolumn{1}{c}{0.626}&\multicolumn{1}{c|}{0.607}&\multicolumn{1}{c}{0.690}&\multicolumn{1}{c}{0.365}&\multicolumn{1}{c}{0.478}\\
-\multicolumn{1}{c|}{vperson}&\multicolumn{1}{c}{0.757}&\multicolumn{1}{c}{0.898}&\multicolumn{1}{c|}{0.821}&\multicolumn{1}{c}{\textbf{0.823}}&\multicolumn{1}{c}{\textbf{0.936}}&\multicolumn{1}{c|}{\textbf{0.873}}&\multicolumn{1}{c}{0.539}&\multicolumn{1}{c}{0.628}&\multicolumn{1}{c|}{0.568}&\multicolumn{1}{c}{0.753}&\multicolumn{1}{c}{0.476}&\multicolumn{1}{c}{0.583}\\
-\multicolumn{1}{c|}{cars1}&\multicolumn{1}{c}{0.757}&\multicolumn{1}{c}{\textbf{0.974}}&\multicolumn{1}{c|}{\textbf{0.852}}&\multicolumn{1}{c}{0.729}&\multicolumn{1}{c}{0.945}&\multicolumn{1}{c|}{0.822}&\multicolumn{1}{c}{\textbf{0.843}}&\multicolumn{1}{c}{0.738}&\multicolumn{1}{c|}{0.785}&\multicolumn{1}{c}{0.527}&\multicolumn{1}{c}{0.379}&\multicolumn{1}{c}{0.441}\\
-\multicolumn{1}{c|}{cars2}&\multicolumn{1}{c}{\textbf{0.886}}&\multicolumn{1}{c}{\textbf{0.934}}&\multicolumn{1}{c|}{\textbf{0.910}}&\multicolumn{1}{c}{0.698}&\multicolumn{1}{c}{0.908}&\multicolumn{1}{c|}{0.789}&\multicolumn{1}{c}{0.679}&\multicolumn{1}{c}{0.741}&\multicolumn{1}{c|}{0.705}&\multicolumn{1}{c}{0.282}&\multicolumn{1}{c}{0.131}&\multicolumn{1}{c}{0.179}\\
-\multicolumn{1}{c|}{cars3}&\multicolumn{1}{c}{\textbf{0.841}}&\multicolumn{1}{c}{\textbf{0.969}}&\multicolumn{1}{c|}{\textbf{0.901}}&\multicolumn{1}{c}{0.820}&\multicolumn{1}{c}{0.956}&\multicolumn{1}{c|}{0.882}&\multicolumn{1}{c}{0.804}&\multicolumn{1}{c}{0.802}&\multicolumn{1}{c|}{0.802}&\multicolumn{1}{c}{0.505}&\multicolumn{1}{c}{0.236}&\multicolumn{1}{c}{0.322}\\
-\multicolumn{1}{c|}{cars4}&\multicolumn{1}{c}{\textbf{0.951}}&\multicolumn{1}{c}{\textbf{0.932}}&\multicolumn{1}{c|}{\textbf{0.942}}&\multicolumn{1}{c}{0.877}&\multicolumn{1}{c}{0.917}&\multicolumn{1}{c|}{0.895}&\multicolumn{1}{c}{0.575}&\multicolumn{1}{c}{0.679}&\multicolumn{1}{c|}{0.621}&\multicolumn{1}{c}{0.502}&\multicolumn{1}{c}{0.251}&\multicolumn{1}{c}{0.335}\\
-\multicolumn{1}{c|}{cars5}&\multicolumn{1}{c}{\textbf{0.926}}&\multicolumn{1}{c}{0.777}&\multicolumn{1}{c|}{0.845}&\multicolumn{1}{c}{0.892}&\multicolumn{1}{c}{\textbf{0.857}}&\multicolumn{1}{c|}{\textbf{0.874}}&\multicolumn{1}{c}{0.623}&\multicolumn{1}{c}{0.680}&\multicolumn{1}{c|}{0.645}&\multicolumn{1}{c}{0.659}&\multicolumn{1}{c}{0.138}&\multicolumn{1}{c}{0.228}\\
-\multicolumn{1}{c|}{cars6}&\multicolumn{1}{c}{0.866}&\multicolumn{1}{c}{\textbf{0.988}}&\multicolumn{1}{c|}{\textbf{0.923}}&\multicolumn{1}{c}{\textbf{0.868}}&\multicolumn{1}{c}{0.942}&\multicolumn{1}{c|}{0.903}&\multicolumn{1}{c}{0.624}&\multicolumn{1}{c}{0.890}&\multicolumn{1}{c|}{0.731}&\multicolumn{1}{c}{0.584}&\multicolumn{1}{c}{0.140}&\multicolumn{1}{c}{0.226}\\
-\multicolumn{1}{c|}{cars7}&\multicolumn{1}{c}{0.714}&\multicolumn{1}{c}{\textbf{0.974}}&\multicolumn{1}{c|}{0.824}&\multicolumn{1}{c}{\textbf{0.802}}&\multicolumn{1}{c}{0.950}&\multicolumn{1}{c|}{\textbf{0.869}}&\multicolumn{1}{c}{0.662}&\multicolumn{1}{c}{0.729}&\multicolumn{1}{c|}{0.691}&\multicolumn{1}{c}{0.282}&\multicolumn{1}{c}{0.311}&\multicolumn{1}{c}{0.296}\\
-\multicolumn{1}{c|}{cars8}&\multicolumn{1}{c}{\textbf{0.793}}&\multicolumn{1}{c}{\textbf{0.945}}&\multicolumn{1}{c|}{\textbf{0.862}}&\multicolumn{1}{c}{0.737}&\multicolumn{1}{c}{0.944}&\multicolumn{1}{c|}{0.826}&\multicolumn{1}{c}{0.775}&\multicolumn{1}{c}{0.766}&\multicolumn{1}{c|}{0.767}&\multicolumn{1}{c}{0.529}&\multicolumn{1}{c}{0.699}&\multicolumn{1}{c}{0.602}\\
-\multicolumn{1}{c|}{people1}&\multicolumn{1}{c}{\textbf{0.947}}&\multicolumn{1}{c}{\textbf{0.879}}&\multicolumn{1}{c|}{\textbf{0.912}}&\multicolumn{1}{c}{0.925}&\multicolumn{1}{c}{0.816}&\multicolumn{1}{c|}{0.866}&\multicolumn{1}{c}{0.492}&\multicolumn{1}{c}{0.693}&\multicolumn{1}{c|}{0.563}&\multicolumn{1}{c}{0.760}&\multicolumn{1}{c}{0.393}&\multicolumn{1}{c}{0.518}\\
-\multicolumn{1}{c|}{people2}&\multicolumn{1}{c}{\textbf{0.950}}&\multicolumn{1}{c}{\textbf{0.981}}&\multicolumn{1}{c|}{\textbf{0.965}}&\multicolumn{1}{c}{0.939}&\multicolumn{1}{c}{0.895}&\multicolumn{1}{c|}{0.916}&\multicolumn{1}{c}{0.850}&\multicolumn{1}{c}{0.774}&\multicolumn{1}{c|}{0.808}&\multicolumn{1}{c}{0.728}&\multicolumn{1}{c}{0.425}&\multicolumn{1}{c}{0.537}\\
+\multicolumn{1}{c}{vcar}&\multicolumn{1}{c}{\textbf{0.940}}&\multicolumn{1}{c}{\textbf{0.887}}&\multicolumn{1}{c}{\textbf{0.913}}&\multicolumn{1}{c}{0.839}&\multicolumn{1}{c}{0.856}&\multicolumn{1}{c}{0.846}&\multicolumn{1}{c}{0.595}&\multicolumn{1}{c}{0.626}&\multicolumn{1}{c}{0.607}&\multicolumn{1}{c}{0.690}&\multicolumn{1}{c}{0.365}&\multicolumn{1}{c}{0.478}\\
+\multicolumn{1}{c}{vperson}&\multicolumn{1}{c}{0.757}&\multicolumn{1}{c}{0.898}&\multicolumn{1}{c}{0.821}&\multicolumn{1}{c}{\textbf{0.823}}&\multicolumn{1}{c}{\textbf{0.936}}&\multicolumn{1}{c}{\textbf{0.873}}&\multicolumn{1}{c}{0.539}&\multicolumn{1}{c}{0.628}&\multicolumn{1}{c}{0.568}&\multicolumn{1}{c}{0.753}&\multicolumn{1}{c}{0.476}&\multicolumn{1}{c}{0.583}\\
+\multicolumn{1}{c}{cars1}&\multicolumn{1}{c}{0.757}&\multicolumn{1}{c}{\textbf{0.974}}&\multicolumn{1}{c}{\textbf{0.852}}&\multicolumn{1}{c}{0.729}&\multicolumn{1}{c}{0.945}&\multicolumn{1}{c}{0.822}&\multicolumn{1}{c}{\textbf{0.843}}&\multicolumn{1}{c}{0.738}&\multicolumn{1}{c}{0.785}&\multicolumn{1}{c}{0.527}&\multicolumn{1}{c}{0.379}&\multicolumn{1}{c}{0.441}\\
+\multicolumn{1}{c}{cars2}&\multicolumn{1}{c}{\textbf{0.886}}&\multicolumn{1}{c}{\textbf{0.934}}&\multicolumn{1}{c}{\textbf{0.910}}&\multicolumn{1}{c}{0.698}&\multicolumn{1}{c}{0.908}&\multicolumn{1}{c}{0.789}&\multicolumn{1}{c}{0.679}&\multicolumn{1}{c}{0.741}&\multicolumn{1}{c}{0.705}&\multicolumn{1}{c}{0.282}&\multicolumn{1}{c}{0.131}&\multicolumn{1}{c}{0.179}\\
+\multicolumn{1}{c}{cars3}&\multicolumn{1}{c}{\textbf{0.841}}&\multicolumn{1}{c}{\textbf{0.969}}&\multicolumn{1}{c}{\textbf{0.901}}&\multicolumn{1}{c}{0.820}&\multicolumn{1}{c}{0.956}&\multicolumn{1}{c}{0.882}&\multicolumn{1}{c}{0.804}&\multicolumn{1}{c}{0.802}&\multicolumn{1}{c}{0.802}&\multicolumn{1}{c}{0.505}&\multicolumn{1}{c}{0.236}&\multicolumn{1}{c}{0.322}\\
+\multicolumn{1}{c}{cars4}&\multicolumn{1}{c}{\textbf{0.951}}&\multicolumn{1}{c}{\textbf{0.932}}&\multicolumn{1}{c}{\textbf{0.942}}&\multicolumn{1}{c}{0.877}&\multicolumn{1}{c}{0.917}&\multicolumn{1}{c}{0.895}&\multicolumn{1}{c}{0.575}&\multicolumn{1}{c}{0.679}&\multicolumn{1}{c}{0.621}&\multicolumn{1}{c}{0.502}&\multicolumn{1}{c}{0.251}&\multicolumn{1}{c}{0.335}\\
+\multicolumn{1}{c}{cars5}&\multicolumn{1}{c}{\textbf{0.926}}&\multicolumn{1}{c}{0.777}&\multicolumn{1}{c}{0.845}&\multicolumn{1}{c}{0.892}&\multicolumn{1}{c}{\textbf{0.857}}&\multicolumn{1}{c}{\textbf{0.874}}&\multicolumn{1}{c}{0.623}&\multicolumn{1}{c}{0.680}&\multicolumn{1}{c}{0.645}&\multicolumn{1}{c}{0.659}&\multicolumn{1}{c}{0.138}&\multicolumn{1}{c}{0.228}\\
+\multicolumn{1}{c}{cars6}&\multicolumn{1}{c}{0.866}&\multicolumn{1}{c}{\textbf{0.988}}&\multicolumn{1}{c}{\textbf{0.923}}&\multicolumn{1}{c}{\textbf{0.868}}&\multicolumn{1}{c}{0.942}&\multicolumn{1}{c}{0.903}&\multicolumn{1}{c}{0.624}&\multicolumn{1}{c}{0.890}&\multicolumn{1}{c}{0.731}&\multicolumn{1}{c}{0.584}&\multicolumn{1}{c}{0.140}&\multicolumn{1}{c}{0.226}\\
+\multicolumn{1}{c}{cars7}&\multicolumn{1}{c}{0.714}&\multicolumn{1}{c}{\textbf{0.974}}&\multicolumn{1}{c}{0.824}&\multicolumn{1}{c}{\textbf{0.802}}&\multicolumn{1}{c}{0.950}&\multicolumn{1}{c}{\textbf{0.869}}&\multicolumn{1}{c}{0.662}&\multicolumn{1}{c}{0.729}&\multicolumn{1}{c}{0.691}&\multicolumn{1}{c}{0.282}&\multicolumn{1}{c}{0.311}&\multicolumn{1}{c}{0.296}\\
+\multicolumn{1}{c}{cars8}&\multicolumn{1}{c}{\textbf{0.793}}&\multicolumn{1}{c}{\textbf{0.945}}&\multicolumn{1}{c}{\textbf{0.862}}&\multicolumn{1}{c}{0.737}&\multicolumn{1}{c}{0.944}&\multicolumn{1}{c}{0.826}&\multicolumn{1}{c}{0.775}&\multicolumn{1}{c}{0.766}&\multicolumn{1}{c}{0.767}&\multicolumn{1}{c}{0.529}&\multicolumn{1}{c}{0.699}&\multicolumn{1}{c}{0.602}\\
+\multicolumn{1}{c}{people1}&\multicolumn{1}{c}{\textbf{0.947}}&\multicolumn{1}{c}{\textbf{0.879}}&\multicolumn{1}{c}{\textbf{0.912}}&\multicolumn{1}{c}{0.925}&\multicolumn{1}{c}{0.816}&\multicolumn{1}{c}{0.866}&\multicolumn{1}{c}{0.492}&\multicolumn{1}{c}{0.693}&\multicolumn{1}{c}{0.563}&\multicolumn{1}{c}{0.760}&\multicolumn{1}{c}{0.393}&\multicolumn{1}{c}{0.518}\\
+\multicolumn{1}{c}{people2}&\multicolumn{1}{c}{\textbf{0.950}}&\multicolumn{1}{c}{\textbf{0.981}}&\multicolumn{1}{c}{\textbf{0.965}}&\multicolumn{1}{c}{0.939}&\multicolumn{1}{c}{0.895}&\multicolumn{1}{c}{0.916}&\multicolumn{1}{c}{0.850}&\multicolumn{1}{c}{0.774}&\multicolumn{1}{c}{0.808}&\multicolumn{1}{c}{0.728}&\multicolumn{1}{c}{0.425}&\multicolumn{1}{c}{0.537}\\
 \hline
-\multicolumn{1}{c|}{average}&\multicolumn{1}{c}{\textbf{0.860}}&\multicolumn{1}{c}{\textbf{0.928}}&\multicolumn{1}{c|}{\textbf{0.889}}&\multicolumn{1}{c}{0.829}&\multicolumn{1}{c}{0.910}&\multicolumn{1}{c|}{0.868}&\multicolumn{1}{c}{0.670}&\multicolumn{1}{c}{0.729}&\multicolumn{1}{c|}{0.698}&\multicolumn{1}{c}{0.597}&\multicolumn{1}{c}{0.333}&\multicolumn{1}{c}{0.428}\\
+\multicolumn{1}{c}{平均}&\multicolumn{1}{c}{\textbf{0.860}}&\multicolumn{1}{c}{\textbf{0.928}}&\multicolumn{1}{c}{\textbf{0.889}}&\multicolumn{1}{c}{0.829}&\multicolumn{1}{c}{0.910}&\multicolumn{1}{c}{0.868}&\multicolumn{1}{c}{0.670}&\multicolumn{1}{c}{0.729}&\multicolumn{1}{c}{0.698}&\multicolumn{1}{c}{0.597}&\multicolumn{1}{c}{0.333}&\multicolumn{1}{c}{0.428}\\
 \hline
 
-\end{tabular}}
+\end{tabular}
+}
 \end{table}
 
 
 \begin{table}
-\caption{Comparisons of computation speed and foreground detection accuracy}
-\label{ch4:tab:1}       % Give a unique label
+\caption{算法速度与准确度比较}
+\begin{center}
 \begin{tabular}{cccc}
 
   \hline
   % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
-  Algorithm & Preprocessing & Speed & F-score \\
+  算法 & 预处理 & 速度(帧/秒) & F-score \\
 \hline
-  \citenum{Multitransform} & Dense Optical Flow & NA & 0.848 \\
-  \citenum{gbsuperpixel} & Dense Optical Flow & 0.17fps & 0.923 \\
-  \citenum{5.8s} & No  & 45fps & 0.419 \\
-  ours & No & 7.65fps & 0.910 \\
+  \inlinecite{Multitransform}算法 & 稠密光流 & NA & 0.848 \\
+  \inlinecite{gbsuperpixel}算法 & 稠密光流 & 0.17 & 0.923 \\
+  \inlinecite{5.8s}算法 & 无  & 45& 0.419 \\
+  本章算法 & 无 & 7.65 & 0.910 \\
   \hline
 
 \end{tabular}
 \begin{tabular}{c}
 \end{tabular}
+\end{center}
+\label{ch4:tab:result2}       % Give a unique label
+
 \end{table}
 
 %\begin{table}
@@ -365,43 +375,47 @@ $ P = TP/(TP+FP)$，召回率$R$定义为$R = TP/(TP+FN)$，F-Score定义为$F =
 \caption{The processing time of each step of the proposed algorithm for $640\times480$ size input, steps implemented on GPU are denoted in green, others are in red.}
 \label{fig:5}       % Give a unique label
 \end{figure}
-As for the computation speed, our algorithm runs at about 8 FPS with the frame size 640$\times$480 input on a PC with an Intel i7 CPU and a Nvidia Geforce Titan GPU. The processing time for each step of the proposed algorithm is shown in Figrue 6. The GPU implementation of KLT algorithm in OpenCV is adopted to calculate the sparse optical flows, and our appearance background model is also implemented on GPU. As SSRG and MRF optimizations are implemented on the superpixel level,  these two operations are quite fast. Based on the sparse optical flow and SSRG, our method only takes about $70ms$ to obtain a raw segmentation of foreground from the motion cue. The comparisons of the computation speeds between our method and the other state-of-the-art methods with dense optical flow are summarized in Table 2. The speeds and F-score values of the other methods are imported from their papers. For a fair comparison, in Table 2, the F-score value of each method is the average F-score of the four test sequences from \cite{HopKinsDataSet}(cars1, cars2, people1, people2) that were used in Refs.~\citenum{Multitransform,gbsuperpixel}. The original frame size of all the four test sequences is $640\times480$. The computation speed in Ref.~\citenum{Multitransform} could not be found in their paper. Compared with Ref.~\citenum{gbsuperpixel}, our method is about 45 times faster in speed with a sightly lower F-score. The method proposed in Ref.~\citenum{5.8s} is a very fast algorithm running in real time even on a smart-phone platform, but the accuracy is much lower than other methods in Table 2, and this limits its usage in applications that require high accuracy. A significant advantage of our method is that it can be used in a plug-and-play way for many near-real-time applications.
-\subsection{Part B}
-In this part, we validate the proposed algorithm on the CD.Net 2014 Dataset\cite{CD2014}. Firstly, our algorithm is tested on the PTZ(Pan-Tile-Zoom) category. In this category, there are four long videos captured by PTZ cameras. The average length of the four sequences is 2158 frames. We use the same parameter settings as described in Part A. For the objective evaluation, we use the same performance metrics in Ref.~\citenum{CD2014}. In addition, PSNR(Peak Signal Noise Ratio) and NCC(Normalized Cross-Correlation) are computed between the segmentation result and the ground truth as follows $$MSE=\frac{1}{M\times N}\sum_{x,y}\left \| I_{x,y}-J_{x,y} \right \|^{2},PSNR = 20\times log_{10}\left ( \frac{255}{\sqrt{MSE}}\right )$$
-$$NCC=\frac{\sum_{x,y}\left( I_{x,y}-\bar J_{x,y}\right )\left(J_{x,y}- \bar I_{x,y} \right )}{M\times N\times Std(I) \times Std(J)}$$ where $M$ and $N$ are the image width and height, $\bar I_{x,y},\bar J_{x,y}$ are the mean value of image $I$ and $J$ respectively, $Std$ stands for the standard deviation operation.\par
- In Table 3, the quantity evaluation results are listed and compared with other state-of-the-art algorithms. Our algorithm, named as FMCBS,  ranks the top on the PTZ category of the CD.Net 2014 Dataset\cite{CD2014} when submitting this paper \footnote{http://wordpress-jodoin.dmi.usherb.ca/results2014/412/}. The ranking is computed by the average ranking on the 7 metrics. The definition of these metrics, Recall(R), Sp(Specificity), FPR(False Positive Rate), FNR(False Negative Rate), PWC(Percentage of Wrong Classification), F(F-score) and P(Precision) can be found in Ref.~\citenum{CD2014}.
+在算法速度方面，本章算法在处理大小为 640$\times$480 的视频时可以到8帧/秒。在实验中，使用一台配备Intel i7 CPU和NVIDIA Geforce Titan GPU 的台式电脑。本章算法各步骤的耗时情况如图~\ref{ch4:fig:timing}所示，其中绿色标示的步骤为GPU实现。本章算法使用了OpenCV~\cite{opencv_library}中提供KLT算法的GPU版本，另外本章算法的背景模型部分也是通过CUDA~\cite{CUDA}在GPU上实现。从图~\ref{ch4:fig:timing}中可以看到，由于SSRG和MRF算法均在超像素上实现，这两步计算过程也较快。基于稀疏光流和SSRG算法，本章算法可以在70ms内获得基于运动线索的粗略前景结果。本章所提算法的速度与其他算法的比较情况如表\ref{ch4:tab:result2}所示。为了公平比较，表\ref{ch4:tab:result2}中列出了各算法在文献\inlinecite{HopKinsDataSet}中提供的四个视频(cars1, cars2, people1, people2)上得到的平均F-score值。算法的速度和F-score值均来自于各参考文献，其中文献~\inlinecite{Multitransform}中并没有介绍该算法的速度。这四个视频的原始大小为 $640\times480$。 与文献~\inlinecite{gbsuperpixel}算法相比，本章算法的速度大约是其 45 倍，而在精度上本章算法只比文献~\inlinecite{gbsuperpixel}算法稍差。文献\inlinecite{5.8s}所提出的算法非常快，但是其准确度与表\ref{ch4:tab:result2}中的其他算法相比差距较大，使得其无法应用于对前景检测准确度要求高的场合。此外，本章算法的一个重要优势是不需要计算稠密光流等预处理步骤，可以以即插即用的方式应用于很多准实时应用场景。
+\subsection{实验二}
+在本小节中，将本章所提出算法在 CD.Net 2014数据集\cite{CD2014}进行了测试。首先，对数据集中的移动相机类视频进行了测试。在该分类中，有四个移动相机拍摄的长视频，其中包含的相机运动方式是旋转、平移和缩放(Pan-Tile-Zoom ,PTZ)，四个视频的平均长度是2158帧。在实验中使用~\ref{ch4:sec:sub:test1}中一样的参数设置。在算法定量分析中，使用了与文献~\cite{CD2014}一致的指标。此外，为了比较提取前景的准确度，计算提取前景图像与正确值之间的峰值信噪比(Peak Signal Noise Ratio, PSNR)，以及归一化互相关系数(Normalized Cross-Correlation, NCC)。其中PSNR的计算方法为:
+ $$MSE=\frac{1}{M\times N}\sum_{x,y}\left \| I_{x,y}-J_{x,y} \right \|^{2},PSNR = 20\times log_{10}\left ( \frac{255}{\sqrt{MSE}}\right )$$
+ NCC的计算方法为：
+$$NCC=\frac{\sum_{x,y}\left( I_{x,y}-\bar J_{x,y}\right )\left(J_{x,y}- \bar I_{x,y} \right )}{M\times N\times Std(I) \times Std(J)}$$
+ 其中$M$ 和 $N$分别为图像的宽度和高度。 $\bar I_{x,y},\bar J_{x,y}$ 分别表示图像$I$ and $J$ 的颜色均值，$Std$ 表示计算标准差。\par
+ 在表~\ref{ch4:tab:result3}中列出了本章算法的到的平均结果以及与其他领先的算法比较的结果。其中本章算法命名为FMCBS。通过比较，在本文完成时本章算法在CD.Net 2014数据集\cite{CD2014} 的PTZ 类别中综合排名第一\footnote{见 http://wordpress-jodoin.dmi.usherb.ca/results2014/412/}。该综合排名是计算算法在7项指标中的综合排名得到的。
 
  \begin{table}[ht]
 \caption{Comparisons with other state-of-the-art algorithms on the PTZ category of the CD.Net 2014 DataSet\cite{CD2014}.}
-\label{tab:Comparisons on PTZ }
-\begin{center}
-\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|} %% this creates two columns
+\label{ch4:tab:resultPTZ}
+\resizebox{\textwidth}{!}{
+
+
+\begin{tabular}{ccccccccccc} %% this creates two columns
 %% |l|l| to left justify each column entry
 %% |c|c| to center each column entry
 %% use of \rule[]{}{} below opens up each row
 \hline
-\rule[-1ex]{0pt}{3.5ex}  Method & Ranking & R &Sp & FPR & FNR &PWC &F &P & NCC & PSNR \\
-\hline
+\rule[-1ex]{0pt}{3.5ex}  算法 & 排名 & R &Sp & FPR & FNR &PWC &F &P & NCC & PSNR \\
+
 \rule[-1ex]{0pt}{3.5ex}  FMCBS & 3.86 & 0.834 & 0.998 & 0.003 & 0.167 &0.384&0.704&0.645 &0.194&27.654\\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  PAWCS\cite{Stcharles2015A}&9.43&0.698&0.991&0.009&0.302&1.116&0.461&0.473&0.155&17.657 \\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  SharedModel\cite{Chen2015Learning}&  11.71&0.797&0.979&0.021&0.203&2.217&0.386&0.312&0.174&12.392  \\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  SuBSENSE\cite{subsenseTIP}&  13.43&0.831&0.963&0.037&0.169&3.816&0.348&0.284&0.193&15.992 \\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  CwisarDH\cite{Gregorio2014Change}&13.57&0.336&0.998&0.002&0.664&0.685&0.322&0.482&0.105&18.708  \\
 \hline
-\end{tabular}
-\end{center}
+\end{tabular}}
 \end{table}
 
-
+为了测试本章算法的可扩展性，将本章算法的参数进行调整后在CD.Net 2014数据库中的静态相机情况下动态背景类视频(boats，canoe)中两个较困难的视频上进行了测试。由于测试视频中摄像机是固定的，因此在本章所用的背景模型中以文献~\inlinecite{subsenseTIP}中定义的更新机制对背景模型进行更新。另外，由于相机是静止的，这时本章算法的运动线索无效，只用基于外观模型的线索来处理静态相机视频。在表~\ref{ch4:tab:resultsDB}中列出了本章算法的结果以及同其他基于采样模型的算法的比较。由于文献~\inlinecite{Chien2002Efficient}中的算法只有一张图像类背景建模，使得改算法无法有效处理包含动态背景的视频。从表~\ref{ch4:tab:resultsDB}中可以看出，本章所提出的算法得到的精度指标F-score好于原来的SubSENSE算法\cite{subsenseTIP}。这主要得益于本章算法的MRF优化算法。
 To show the extensibility of the proposed algorithm. We have also tested our algorithm on two challenging sequences, boats and canoe, from the dynamic background category in the CD.Net 2014 dataset. These two video sequences are captured by a static camera with dynamic background contents. For these sequences, the same model updating policy is used as Ref.~\citenum{subsenseTIP}. Since the camera is static, only the appearance cue is used. In Table 4, the performance of the proposed algorithm is compared with other state-of-the-art sample-based background model algorithms. Only using a single background image, the algorithm proposed in Ref.~\cite{Chien2002Efficient} can not effectively handle the dynamic background in the videos, and it has the worst performance compared with other algorithms in Tabel 4. It is shown that our algorithm outperforms the original SuBSENSE algorithm \cite{subsenseTIP} in terms of F-score, this contributes to our MRF optimization framework.
 
  \begin{table}[ht]
 \caption{Comparisons with other related algorithms on boats and canoe video in dynamic background category of the CD.Net 2014 Dataset \cite{CD2014}.}
-\label{tab:Comparisons on Dynamic backgrounds }
+\label{ch4:tab:resultsDB }
 \begin{center}
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|} %% this creates two columns
 %% |l|l| to left justify each column entry
@@ -409,15 +423,15 @@ To show the extensibility of the proposed algorithm. We have also tested our alg
 %% use of \rule[]{}{} below opens up each row
 \hline
 \rule[-1ex]{0pt}{3.5ex}  Method &R &Sp & FPR & FNR &PWC &F &P\\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  EMOS\cite{Chien2002Efficient}&  0.240&0.987&0.013&0.760&1.993&0.184&0.150 \\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  PBAS\cite{pbas}&0.359&1.000&0.000&0.641&0.604&0.527&0.992  \\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  SuBSENSE\cite{subsenseTIP}&  0.600&1.000&0.000&0.400&0.408&0.734&0.945 \\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  FMCBS &  0.734 & 0.999 & 0.001 & 0.257 &0.319&0.814&0.899\\
-\hline
+
 \rule[-1ex]{0pt}{3.5ex}  PAWCS\cite{Stcharles2015A}&0.844&0.999&0.001&0.156&0.211&0.882&0.924\\
 \hline
 \end{tabular}
