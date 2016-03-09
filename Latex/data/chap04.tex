@@ -52,17 +52,17 @@ Barnich等人提出了一种基于无参数采样一致模型的背景减除算�
 \begin{tabular}{c}
 % Use the relevant command to insert your figure file.
 % For example, with the graphicx package use
-  \includegraphics[width=0.8\textwidth]{ch4/flowchartmini.eps}
+  \includegraphics[width=0.9\textwidth]{ch4/FlowchartSmallChs.png}
   \end{tabular}
 % figure caption is below the figure
 \end{center}
-\caption{Overview of the proposed algorithm. The main characteristics of this paper are denoted by yellow.}
+\caption{算法流程示意图，主要部分用黄色标记}
 \label{ch4:fig:1}       % Give a unique label
 \end{figure}
 
 
 \subsection{基于ASAPW的相机运动补偿}
-\label{ch4:sec:asap}
+\label{ch4:sec:sub:asap}
 文献~\inlinecite{Liu_2013ASAP}提出了一种用于视频稳定的基于变形的相邻帧图像运动补偿算法。如图~\ref{ch4:fig:2}所示，该算法将每一帧图像划分为均匀网格。相邻图像帧中的一对特征点\(p\) 和 $\hat{p}$ 分别位于网格 \(i\) 和 \(j\)当中。网格$i$h和$j$的四个顶点分别为${V}_{p}=[{v}^{1}_{p}$,${v}^{2}_{p}$,${v}^{3}_{p}$,${v}^{4}_{p}]$， ${\hat{V}_{p}}=[\hat{v}^{1}_{p}$,$\hat{v}^{2}_{p}$,$\hat{v}^{3}_{p}$,$\hat{v}^{4}_{p}]$。因此，\(p\) 可以用网格\(i\)的四个顶点坐标的双线性差值表示：$p=\sum_{p}{{V}_{p}{w}_{p}}$。
 
  \begin{figure}[!htbp]
@@ -72,10 +72,11 @@ Barnich等人提出了一种基于无参数采样一致模型的背景减除算�
   \includegraphics[width=0.75\textwidth]{ch4/asapN.eps}
   \par \quad\quad\quad(a)\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad(b)
 % figure caption is below the figure
+
 \end{center}
 
-\caption{ASAPW 示意图~\citenum{Liu_2013ASAP}}
-\label{fig:2}       % Give a unique label
+\caption{ASAPW 示意图~\cite{Liu_2013ASAP}}
+\label{ch4:fig:2}       % Give a unique label
 \end{figure}
 为了补偿相机运动，通过图像变形对当前帧图像进行变换，具体的变形通过求解能量最小化问题实现。
 \begin{equation}\label{ch4:equ:asap}
@@ -90,23 +91,25 @@ $${E}_{s}(\hat{V} )= \sum_{\hat{v}}\parallel\hat{v}-\hat{v}_{1} - s{R}_{90}(\hat
 主要作用是保证变形后的图像中相邻三角形的变换为相似变换，保持图像的形状不变。
 公式~\ref{ch4:equ:asap}中的$\alpha$为权重因子，调整数据项和平滑项之间的权重比值。由于公式~\ref{ch4:equ:asap}中的方程是一个线性方程组，变形后的网格角点坐标$\hat{Vp}$可以通过求解稀疏现行方程组得到。对于每个网格，利用网格的四个顶点可以得到一个单应性矩阵。整幅图像的运动可以通过这些二维网格上的一系列单应性矩阵表示。与基于全局单应性矩阵的其他运动估计算法相比，ASAPW的效果要更好~\cite{Liu_2013ASAP}。 \par
 从图~\ref{ch4:equ:dataterm}可以看出，随着匹配特征点数量的增加，数据项所包含的约束会随着线性增长。当匹配的特征点数太多时，会造成求解大规模稀疏线性方程组的速度变慢，从而影响整个算法的效率。基于此原因，本章算法提出利用网格内特征点直接估算网格内单应性矩阵，从而得到网格顶点变形后坐标。对于网格内包含足够特征点以估算网格内单应性矩阵的网格，将其标记为$h$,他们的数据项定义为：
- 
+
  $$E^{h}_{d}(\hat{V}) = \sum_{p\in h}{\parallel H_{p}V_{p} - \hat{V_{p}}\parallel}^2$$
-其中 $H_{p}$ 为包含$p$的顶点的网格单元的单应性矩阵。估算 The minimum number of matched feature points to estimate a $3\times3$ homography is 4, in our implementation, we set it as 10 for robust estimation.  For those cells do not meet the minimum matched feature points requirement for homography estimation, we use the bilinear interpolation based data  term as in Eq.(1). Finally, the data term in our warping algorithm is defined as,
+其中 $H_{p}$ 为包含$p$的顶点的网格单元的单应性矩阵。估算8个自由度的$3\times3$ 单应性矩阵最少需要4组对应的特征点，为了使估算更为准确，在本章算法中最少选取10组特征点来估算网格内的单应性矩阵。对于那些少于10组特征点的网格，无法估算网格内单应性矩阵，对于这些网格使用基于公式~\ref{ch4:equ:dataterm}的双线性插值约束数据项。最终，本章的图像变形算法的数据项定义为：
 $${E}_{d}(\hat{V}) = \sum_{p \notin h}{\parallel\hat{V}_{p}{w}_{p}- \hat{p}\parallel}^{2} +
 \sum_{p\in h}{\parallel {H_{p}V_{p} - \hat{V_{p}}}\parallel}^2.$$
-To select the proper weight coefficient \(\alpha\) in Eq.(2), the authors in Ref.~\citenum{Liu_2013ASAP} equally discretized $\alpha$ into 10 values between 0.3 and 3. The one with the minimum warping error is selected at last. This method is inefficient. Different to their method, our method adaptively sets the weight coefficient for cells  $c \in h$ using the warping error, $e_{c} = {\parallel H_{c}p_{c} - \hat{p_{c}} \parallel}^2 $, as follows, $\alpha_{c\in h} = s_{1}\exp({e_{c}/avgErr})+ s_{2}$, where $s_{1}$ is set to 0.15, $avgErr$ is the average warping error of $h$, and $s_{2}$ is a truncation factor making $\alpha_{h} \in [0.3,3.0]$. We set $\alpha_{c \notin h}$ to a constant value 1.0. In this way, the data term  is trusted more for the cells with a smaller fitting error, while the stronger regularization is performed on cells with a less reliable homography.
-\subsection{Superpixel-based seeded region growing}
-\label{sec:3.2}
-Considering the heavy computation cost of the dense optical flow, we use KLT-based sparse optical flow with SSRG to get a raw foreground segmentation. Since the pixel-level camera motion has already been estimated in the ASAP warping, we can obtain the superpixel-level camera motion by the average motion of pixels within a superpixel. Then this estimated camera motion is compared with the superpixel-level optical flow. Ideally, the optical flows of background pixels should be identical with the camera motion. If the difference between these two motions is within a threshold, we use a small threshold in practice, e.g., 0.4, these superpixels are labeled as the background seeds. Considering the spatial coherence, we propose the SSRG algorithm, see $Algorithm 1$, to extend these sparse seeds to the entire image frame. The proposed SSRG algorithm is similar to Ref.~\citenum{seededRegionGrowing}, but the main differences are two-fold. (1) The purposes of these two algorithms are different, the algorithm in Ref.~\citenum{seededRegionGrowing} aims to segment the input image into multiple homogenous regions, while our SSRG algorithm divides the image into two regions of the background and the foreground, (2) Our SSRG algorithm is based on superpixels, thus is more efficient than the pixel-based approach in Ref.~\citenum{seededRegionGrowing}.
+为了选择合适的权重因子$\alpha$，文献~\inlinecite{Liu_2013ASAP}中将$\alpha$ 均匀分为十个0.3至3之间的离散候选值。计算这十个候选值的变形误差，最终选择变形误差最小的值作为权重因子。该方法需要重复计算图像的变形误差，效率较低。本章算法对其进行了改进，通过自适应调整的方式来设置每个网格内的权重因子，通过网格$c \in h$内的变形误差$e_{c} = {\parallel H_{c}p_{c} - \hat{p_{c}} \parallel}^2 $，设置权重因子值为：
+ $$ \alpha_{c\in h} = s_{1}\exp({e_{c}/avgErr})+ s_{2} $$
+ 其中$s_{1}$ 为常数固定值0.15， $avgErr$ 为$h$的平均变形误差, $s_{2}$ 为截断因子使得 $\alpha_{h} \in [0.3,3.0]$。对于那些特征点数小于10的网格，其权重因子设定为固定值， $\alpha_{c \notin h} = 1.0$。通过这种方式，使得那些变形误差较小的网格的数据项获得更大的权重，而那些误差大或者不包含特征点的纹理平滑区域则更多依靠相似变换来保证变形的准确度。
+\subsection{基于超像素的区域增长算法}
+\label{ch4:sec:sub:ssrg}
+由于准确的图像逐像素稠密光流的计算量非常大，本章算法提出通过基于KLT算法~\cite{KLT}的稀疏光流以及超像素区域增长算法(SSRG)来得到前景的粗略分割结果。由于像素级的相机运动已经通过~\ref{ch4:sec:asap}中介绍的ASAPW得到，因此可以计算每个超像素内像素的平均运动得到超像素级的相机运动估算结果。将此相机运动与基于超像素的光流进行比较，可以得到前景线索。在理想情况下，由于背景区域像素的运动是由于相机运动产生的，因此其光流应该与相机运动一致。如果某超像素的光流与相机运动的差距小于某阈值，在本章算法中使用较小的阈值0.4，那么该超像素被标记为背景种子点。利用图像像素在空间分布和颜色空间的相关性，相邻及相似的像素同属于背景或同属于前景的几率较大，本章提出利用SSRG算法将稀疏的背景种子点扩散到整幅图像，见算法~\ref{ch4:alg:ssrg}。本章提出的SSRG算法与文献~\inlinecite{seededRegionGrowing}相似，但是主要有以下两个区别: (1) 本章所提出的SSRG算法与文献~\inlinecite{seededRegionGrowing}的目的不同，前者目的是将图像分割为前景区域和背景区域两个部分，而后者则是将图像分为多个齐次区域；(2)本章提出的SSRG算法基于超像素，在效率上比文献~\inlinecite{seededRegionGrowing}中基于像素的算法更具优势。
 
 \renewcommand{\algorithmcfname}{算法}
 \begin{algorithm}
-\caption{Superpixel-based seeded region growing}
+\caption{基于超像素的区域增长算法}
 \label{ch4:alg:ssrg}
 \LinesNumbered
-\KwData {$superpxiels$ of image $I$, background $seeds$, $threshold_{rg}$ for region growing}
-\KwResult {background $mask$}
+\KwData {图像 $I$ 的超像素$superpxiels$ , 背景种子点集合 $seeds$, 区域增长门限$threshold_{rg}$ }
+\KwResult {背景结果 $mask$}
  $\forall p \in superpixels$, $mask[p] \leftarrow 0$ , $segmented[p] \leftarrow 0$ \;
 \ForEach {$s$ in $seeds$}{
   $mask[s] \leftarrow 1$ \;
@@ -116,7 +119,7 @@ Considering the heavy computation cost of the dense optical flow, we use KLT-bas
 \While {$dist < threshold_{rg}$ and $regSize < \sharp Superpixels$}{
 \ForEach {$p \in $ Neighbors of $s$}{
 \If{ $!segmented[p]$ and $p \notin list $}{
- { add $p$ into $list$ \;}
+ { 将$p$ 添加到 $list$ \;}
 }
 }
  $\hat{m} \leftarrow  arg\min_{m \in list}{\parallel regColor - Color(m) \parallel}$ \;
@@ -124,7 +127,7 @@ Considering the heavy computation cost of the dense optical flow, we use KLT-bas
  $dist \leftarrow \parallel regColor - {Color(\hat{m})} \parallel $ \;
  $regColor = \frac {regColor \times regSize + Color(\hat{m})}  {regSize + 1 }$ \;
  $regSize \leftarrow regSize$ $+ 1$ \;
- remove $\hat{m}$ from $list$
+从 $list$ 中删除 $\hat{m}$\;
 \If {$list$ is empty}{
  $break$\;
 }
@@ -133,62 +136,80 @@ Considering the heavy computation cost of the dense optical flow, we use KLT-bas
 
 \end{algorithm}
 
-An example of $Algorithm 1$ is shown in Figure 3. From left to right, the first two images in Figure 3 are the superpixel segmentations of frames 41 and 42 of the cars4 video in Ref.~\citenum{HopKinsDataSet}. In the third image, the background superpixel seeds are marked in white color. The output of $Algorithm 1$ is shown in the last image.
+算法~\ref{ch4:alg:ssrg}的一个计算实例如图~\ref{ch4:fig:3}所示。图~\ref{ch4:fig:3}中(a)和(b)分别为文献~\citenum{HopKinsDataSet}数据库中Car4视频的第41和42帧图像的超像素分割结果。图~\ref{ch4:fig:3}(c)为背景超像素种子点，用白色标识，本章SSRG算法的输出结果见图~\ref{ch4:fig:3}(d)。从图中可以看出，通过SSRG算法可以有效的将稀疏的背景种子点扩散到前景对象除外的整幅图像，图~\ref{ch4:fig:3}(d)中黑色区域大部分为前景对象，有少部分为图像的边界或连续性差的背景区域。图~\ref{ch4:fig:3}(d)中得到的前景结果精度还比较低，仍需进一步进行优化处理。
 % For one-column wide figures use
-\begin{figure*}[!htbp]
+\begin{figure}[!htbp]
 \begin{center}
 % Use the relevant command to insert your figure file.
 % For example, with the graphicx package use
- % \includegraphics[width=0.22\textwidth]{lsuperpixel.png}\quad
-%  \includegraphics[width=0.22\textwidth]{superpixel.png}\quad
-%  \includegraphics[width=0.22\textwidth]{seeds.png}\quad
-%  \includegraphics[width=0.22\textwidth]{motionCue.png}\\
-\includegraphics[width=0.9\textwidth]{ch4/fig3.eps}\\
+ % \includegraphics[width=0.25\textwidth]{lsuperpixel.png}\quad
+%  \includegraphics[width=0.25\textwidth]{superpixel.png}\quad
+%  \includegraphics[width=0.25\textwidth]{seeds.png}\quad
+%  \includegraphics[width=0.25\textwidth]{motionCue.png}\\
+\includegraphics[width=1.0\textwidth]{ch4/fig3.eps}\\
   (a)\quad\quad\quad\quad\quad\quad\quad\quad(b)\quad\quad\quad\quad\quad\quad\quad\quad(c)\quad\quad\quad\quad\quad\quad\quad\quad(d)
 % figure caption is below the figure
 \end{center}
 
-\caption{An example of the proposed SSRG algorithm. (a) superpixel of $frame_{t-1}$, (b) superpixel of $frame_{t}$, (c) background seeds, (d) result of SSRG.}
-\label{fig:3}       % Give a unique label
-\end{figure*}
-\subsection{Sample consensus appearance model}
-\label {sec:3.3}
-Our appearance background model is based on multiple samples of color and LBSP feature of each pixel as in Ref.~\citenum{subsenseTIP}. Let $B(x)$ be the background samples of pixel $I(x)$, follow the definition in Ref.~\citenum{subsenseTIP}, the size of $B(x)$ is 50. In the model matching process, the color and LBSP of $I(x)$ are compared with the samples in $B(x)$. If the distance between $I(x)$ and some sample $B(x)[i]$ is within  $T(x)$, $B(x)[i]$ is viewed as a matched sample. If the number of the matched samples exceeds $ T_{n}$, then $I(x)$ will be labeled as the background pixel. $T_{n}$ is set to 2 for all the pixels, and $T(x)$ is a pixel-level threshold controls the maximum difference allowed to match a pixel with a background sample. In Refs.~\citenum{pbas,subsenseTIP}, a feedback mechanism was introduced to dynamically adjust $T(x)$. In Ref.~\citenum{subsenseTIP}, the threshold for the color space and feature space is controlled by an abstract per-pixel variable $R(x)$,
+\caption{SSRG算法执行结果示例。 (a) $frame_{t-1}$超像素分割, (b) $frame_{t}$超像素分割 , (c) 背景中子点, (d) SSRG算法结果。}
+\label{ch4:fig:3}       % Give a unique label
+\end{figure}
+
+\subsection{基于采样一致的背景模型}
+\label {ch4:sec:sub:scam}
+
+本章算法通过对每个像素点在色彩空间和LBSP的多个采样值来建立背景模型~\cite{subsenseTIP}。假设图像$I$中的某像素$I(x)$的背景采样点模型为$B(x)$，根据文献~\citenum{subsenseTIP}的定义，$B(x)$的大小为50，即通过50个采样点来描述每个像素的背景模型。在模型匹配阶段，图像中每个像素的颜色和LBSP值与$B(x)$中的各个采样值进行比较。如果$I(x)$与某个采样值$B(x)[i]$之间的距离在某个门限 $T(x)$之内，那么$B(x)[i]$则被称为匹配采样点。假如匹配采样点的个数大于匹配门限 $ T_{n}$，则像素 $I(x)$ 被标记为背景像素，反之则被标记为前景像素。在计算过程中$T_{n}$ 为固定常数2，$T(x)$则是像素级的门限变量控制匹配采样点与背景点之间的最大距离。在文献~\citenum{pbas,subsenseTIP}所提算法中，通过一种反馈机制来动态自适应调整$T(x)$，其中颜色空间和LBSP特征点空间的门限值分别由一个像素级变量$R(x)$控制：
+
+
 $$T_{color}(x) = R(x) \cdot R^{0}_{color},$$
 $$T_{lbsp}(x) = 2^{R(x)} + R^{0}_{lbsp},$$
-where $R^{0}_{color}$ and $R^{0}_{lbsp}$ are the minimum color and LBSP distance thresholds, which are set to 30 and 3 respectively \cite{subsenseTIP}. In our algorithm, $R(x)$ is dynamically updated according to the feedback mechanism as,
+其中 $R^{0}_{color}$ 和 $R^{0}_{lbsp}$ 为颜色空间和LBSP特征空间的最小距离门限，分别为固定值30和3\cite{subsenseTIP}。在本章所提出的算法中，通过反馈机制对$R(x)$的值进行动态更新：
 
 $$ R(x) = \begin{cases}  R(x)+v & if \quad {R(x)<(1+2D_{min}(x))}^{2} \\  R(x) - \frac{1 }{v } & otherwise \end{cases}$$
-where $D_{min}(x)$ is the normalized minimal distances between the samples in $B(x)$ and $I(x)$ . Different from Ref.~\citenum{subsenseTIP}, in which $v$ is also updated according to the blinking pixels in the foreground labelling results, we simply set $v$ to a constant value of 0.1. This is because, in moving camera cases, blinking pixels are hard to track. We also observed that, for moving camera scenarios, the model update policy should be more aggressive. In our algorithm, the background samples are updating guided by the final foreground/background label results. Unlike Ref.~\citenum{subsenseTIP}, where the model update rate is also a dynamic per-pixel  variable, we employ a simpler way. For the background pixels $I_{B}(x)$, we replace the randomly selected $10\%$ of the samples with $I_{B}(x)$ and its neighbors, and for foreground pixels, only one sample may be replaced on a probability of 50\%. \par
-Since the sample based model is pixel-independent, it is suitable for parallel implementation. we implement it on GPU via CUDA. For each pixel $I(x)$ , a single thread is launched to compare it with the samples in $B(x)$. In this thread, $R(x)$ and $T(x)$ are also updated. After the final results obtained by the MRF optimization framework described in the following Section, a model updating thread will be launched for each pixel to update the samples.
+其中 $D_{min}(x)$ 为采样模型$B(x)$ 与 $I(x)$间归一化的最小距离。与文献~\citenum{subsenseTIP}算法不同的是, 在文献~\citenum{subsenseTIP}算法中$v$ 值也会根据前景结果的闪烁情况进行动态更新，而本章算法对此进行了简化，将$v$的值设置为固定常数0.1。主要的原因在于，在移动相机情况下，收到运动补偿的准确性影响，前景结果的闪烁情况(即某像素时而被标记为前景，时而被标记为背景，出现闪烁现象)比较难跟踪。此外,在移动相机情况下, 模型的更新率应该比静止相机情况更快，以减少相机补偿的累积误差。在本章所提的算法中，通过最终的前景/背景标记结果对背景采样模型进行更新。文献~\citenum{subsenseTIP}算法中模型更新率同样是一个动态变化的像素级变量，为了提高效率，本章算法将其进行了简化。对于标记为背景的像素$I_{B}(x)$，用$I_{B}(x)$ 其随机领域像素更新$I_{B}(x)$中 $10\%$的采样点；对于标记为前景的像素，只以$50\% $ 的 概率更新一个采样点。改进后的更新模式跟加简单且适用于移动相机情况。 \par
+由于采样模型对各个像素是相互独立的，因此可以通过并行编程的方式实现。本章算法将背景模型通过CUDA~\cite{CUDA}在GPU上进行了实现。对于每个像素$I(x)$，单独启动一个线程来将其与背景模型$B(x)$进行比较。随后，在此线程中进行$R(x)$和 $T(x)$等参数的更新。当通过MRF优化过程得到最终的前景结果时，对每个像素启动一个线程来对采样模型$B(x)$进行更新。
 
-\subsection{Superpixel-based MRF Optimization}
-\label {sec:3.4}
-Till now we've got two raw segmentations from the motion cue and the appearance cue. To refine the final results, a temporal coherent supepixel-based MRF optimization framework is proposed. Our method is inspired by the segmentation improvement algorithm  for the stationary camera background subtraction in Ref.~\citenum{MRF}. Let ${F}_{t}$ be the foreground of the input frame  ${I}_{t}$ at $t$  and $S_{t}$ be the superpixel segmentation. Let ${{F}_{t}}^{M}$ be the foreground of the raw segmentation result from the motion, and ${F_{t}}^{A}$ the foreground of the raw segmentation result from the appearance model. Our goal is to get the final result $F_{t}$ from ${{F}_{t}}^{M}$ and ${{F}_{t}}^{A}$. Following the definition of the superpixel probability in Ref.~\citenum{MRF}, the probability of superpixel $s$ belonging to the foreground can be defined as $$
-\hat{P_{t}(s)} = \frac{c\sum_{x \in s}{F_{t}}^{A}(x) + (1-c)\sum_{x \in s}{F_{t}}^{M}(x)}{\vert s \vert}\eqno{(3)}$$
-where $c$ is the confidence term of the appearance background model, $\vert\cdot\vert$ computes the number of pixels. We add a linear mapping to increase the detection sensitivity, and the final definition of the foreground probability of superpixel $s$ is
-$$P_{t}(s) = min(\theta \cdot \hat{P_{t}(s)},1)$$ in practice, $\theta$ is set to $2.0$. Combines the spatial and temporal coherence and the superpixel probability, we define an energy function like \citenum{graphcut04} as follows:
-$$ E(F_{t}(S)) = \lambda_{1}\sum_{s \in S_{t}}{U(F_{t}(s))} +$$
- $$\lambda_{2}\sum_{(s_{t}(i),s_{t}(j))\in N}{V(F_{t}(i),F_{t}(j))}$$
- $$ +\lambda_{3}\sum_{s \in S_{t}}{T(F_{t}(s))} .\eqno{(4)}$$
+\subsection{基于超像素的MRF优化}
+\label {ch4:sec:MRF}
 
-The first term in Eq.(4) is the unary term defined as
+通过~\ref{ch4:sec:sub:ssrg}和~\ref{ch4:sec:sub:scam}节介绍的方法，可以分别得到基于运动线索和基于外观线索的粗略前景分割结果。但由于这两个粗略结果的精度均不高，需要进行进一步优化处理。本章算法提出一种基于超像素的MRF优化框架。本章的MRF优化框架受到了静态相机视频背景减除优化算法~\cite{MRF}的启发，假设${F}_{t}$ 为$t$ 时刻输入视频图像帧${I}_{t}$的前景，$S_{t}$为图像的超像素分割结果，${{F}_{t}}^{M}$为基于运动线索的粗略前景分割结果，${F_{t}}^{A}$ 为基于外观线索的粗略前景分割结果。此外，根据视频的连续性，在前一帧中为前景对象的像素，在后续图像帧中是前景的概率较大。本章的优化算法的目标是通过${{F}_{t}}^{M}$、${{F}_{t}}^{A}$以及上一帧图像的前景结果得到优化后的最终前景结果 $F_{t}$。根据文献~\citenum{MRF}定义的超像素前景概率，超像素$s$ 属于前景的概率为：
+\begin{equation}
+\label{ch4:equ:fgprop}
+\hat{P_{t}(s)} = \frac{c\sum_{x \in s}{F_{t}}^{A}(x) + (1-c)\sum_{x \in s}{F_{t}}^{M}(x)}{\vert s \vert}
+\end{equation}
+
+
+
+ 其中 $c$ 为外观背景模型的可信度权重因子， $\vert\cdot\vert$ 表示计算超像素的像素数。为了提高前景检测灵敏度，本章算法通过线性映射的方式定义最终超像素前景概率为 ：
+$$P_{t}(s) = min(\theta \cdot \hat{P_{t}(s)},1)$$
+其中 $\theta$ 为固定常数值 $2.0$。 参考文献 \citenum{graphcut04}的方式，结合图像空间域、时间域以及超像素前景概率，本章算法定义如下的能量函数：
+\begin{equation}
+\label{ch4:equ:mrf}
+E(F_{t}(S)) = \lambda_{1}\sum_{s \in S_{t}}{U(F_{t}(s))} + \lambda_{2}\sum_{(s_{t}(i),s_{t}(j))\in N}{V(F_{t}(i),F_{t}(j))} + \lambda_{3}\sum_{s \in S_{t}}{T(F_{t}(s))}
+\end{equation}
+
+
+
+公式~\ref{ch4:equ:mrf}中的第一项为数据项，定义为：
+
 $$ U(F_{t}(s)) = -\ln(P_{t}(s))F_{t}(s) - \ln(1-P_{t}(s))(1-F_{t}(s)), $$
-and the spatial coherence is maintained via
-$$V(F_{t}(i),F_{t}(j)) = \delta( F_{t}(i) - F_{t}(j)) (v_{1} $$
-$$+ v_{2}\cdot e^{(-\frac{\parallel \mu_{t}(i) - \mu_{t}(j)\parallel}{2\beta})})\eqno{(5)}$$
-in which  $\delta()$ is a Kronecker delta function, $\mu_{t}(s)$ is the average color of superpixel $s$ at time $t$, $\beta$ is estimated for each image as the average color distance among the adjacent superpixels, $v_{1}$ and $v_{2}$ are two predefined constant coefficients set to 0.3 and 40, respectively.
-The last term in Eq.(4) is the temporal coherent term. The foreground object in two adjacent frames is temporal coherent, if a superpixel belongs to the foreground in the previous frame, there's a high probability such that the corresponding superpixel in the current frame remains to be foreground. We use the superpixel-level optical flow described in Section 3.2 to establish a link between the superpixels of two consecutive frames. Let $C_{t}(s)$ be the center point of the superpixel $S_{t}(s)$. The corresponding point $C_{t-1}(s)$ in the previous frame can be obtained via the superpixel flow. The temporal neighbor of the $S_{t}(s)$ in the previous frame is defined as
-$$
-\hat{S_{t-1}}(s) = arg\;min_{i\in S_{t-1}}(\alpha_{s}\parallel (C_{t-1}(s) - C_{t-1}(i))\parallel + $$
-$$(1-\alpha_{s})\parallel \mu_{t-1}(i) - \mu_{t}(s)\parallel),$$
-where $\alpha_{s} $ controls the importance of the space difference, we set it as a constant value of 0.9. Then the temporal coherent term in Eq.(4) is defined as
-$$ T(f_{t}(s)) = v_{3}(1-\delta(F_{t}(s)-F_{t-1}(\hat{S_{t-1}}(s))))\cdot $$
-$$e^{-\frac {\parallel \mu_{t}(s) -\mu_{t-1}(\hat{S_{t-1}}(s)) \parallel}{2\beta}}, $$
-where $v_{3}$ is a linear mapping factor to make the three components in Eq.(4) comparable. In our implementation $v_{3}$ is set to 40 as $v_{2}$ in Eq.(5).
+公式~\ref{ch4:equ:mrf}中的第二项为空间相关性约束项：
+\begin{equation}
+\label{ch4:equ:mrfSpace}
+V(F_{t}(i),F_{t}(j)) = \delta( F_{t}(i) - F_{t}(j)) (v_{1} + v_{2}\cdot e^{(-\frac{\parallel \mu_{t}(i) - \mu_{t}(j)\parallel}{2\beta})})
+\end{equation}
+
+其中$\delta()$ 为Kronecker delta函数， $\mu_{t}(s)$ 为 $t$时刻超像素 $s$的平均颜色，$\beta$ 为图像相关的变量，表示图像相邻超像素之间颜色距离的平均值， $v_{1}$ 和$v_{2}$ 为两个预先定义的常数，分别为 0.3 和 40。\par
+公式~\ref{ch4:equ:mrf}中的最后一项为时间连续约束项。前景对象在视频的两个相邻图像帧中应该是连续的，假如某超像素在前一帧被识别为前景像素，那么该超像素在当前图像帧中的对应超像素有很大的概率也同样属于前景。本章算法利用超像素光流建立相邻图像帧超像素之间的关联。假设超像素$S_{t}(s)$的中心点为 $C_{t}(s)$。其在前一帧图像中的对应点$C_{t-1}(s)$可以通过超像素光流得到。超像素$S_{t}(s)$在前一帧图像中对应的超像素$\hat{S_{t-1}}(s)$定义为:
+$$ \hat{S_{t-1}}(s) = \arg\min_{i\in S_{t-1}}(\alpha_{s}\parallel (C_{t-1}(s) - C_{t-1}(i))\parallel + (1-\alpha_{s})\parallel \mu_{t-1}(i) - \mu_{t}(s)\parallel) $$
+其中 $\alpha_{s} $ 为控制空间距离可靠性的权重因子，本章算法中将其设为固定值0.9。因此，公式~\ref{ch4:equ:mrf}中的最后一项具体定义为
+$$ T(f_{t}(s)) = v_{3}(1-\delta(F_{t}(s)-F_{t-1}(\hat{S_{t-1}}(s))))\cdot e^{-\frac {\parallel \mu_{t}(s) -\mu_{t-1}(\hat{S_{t-1}}(s)) \parallel}{2\beta}}$$
+其中 $v_{3}$ 为线性映射函数使得公式~\ref{ch4:equ:mrf}中的三项值的大小相互接近。在本章算法中， $v_{3}$以及公式~\ref{ch4:equ:mrfSpace}的值设置为固定值40。\par
+
+
 
 % For one-column wide figures use
-\begin{figure*}[!htbp]
+\begin{figure}[htbp]
 \begin{center}
 % Use the relevant command to insert your figure file.
 % For example, with the graphicx package use
@@ -197,25 +218,28 @@ where $v_{3}$ is a linear mapping factor to make the three components in Eq.(4) 
 %  \includegraphics[width=0.18\textwidth]{lastMask.png}
 %  \includegraphics[width=0.18\textwidth]{currMask.png}
 %  \includegraphics[width=0.18\textwidth]{groundtruth.png}
-   \includegraphics[width=0.9\textwidth]{ch4/fig4.eps}\\
+   \includegraphics[width=1.0\textwidth]{ch4/fig4.eps}\\
 (a)\quad\quad\quad\quad\quad\quad(b)\quad\quad\quad\quad\quad\quad(c)\quad\quad\quad\quad\quad\quad(d)\quad\quad\quad\quad\quad\quad(e)
 % figure caption is below the figure
 \end{center}
 
-\caption{MRF optimization process, (a) the raw segmentation from the appearance model, (b) the raw segmentation from the motion cue, (c) the foreground labeling result of the last frame, (d) the final result, (e) the ground truth.}
-\label{fig:4}       % Give a unique label
-\end{figure*}
+\caption{MRF 优化过程示意图，(a)基于外观模型的粗略前景结果, (b)基于运动线索的粗略前景结果, (c) 上一帧图像前景结果, (d) 优化后结果, (e) 正确结果}
+\label{ch4:fig:mrf}       % Give a unique label
+\end{figure}
 
-Finally, the segmentation problem can now be viewed as an energy minimization problem, where we seek $F_{t}(S)$ such that $E(F_{t}(S))$ in Eq.(4) is minimized. This can be done effectively via the graph-cut algorithm \cite{graphcut04}. An example of MRF optimization is shown in Figure 4, where the first two images are the raw segmentation results from the motion cue and the appearance model, the third image is the segmentation result of the last frame, the final result is shown in the last image. \par
-Since the energy function is defined in the superpixel level, the computation cost is much lower compared with the pixel-level approach \cite{Multitransform,SubspaceTracking}. The final results of our method is based on the superpixels, all the pixels within a foreground superpixel will be labeled as the foreground, so the size of superpixels in our implementation is relatively small, about 25 pixels on average.
+最后，视频中的背景减除问题可以转换为能量最小化问题，即寻找 $F_{t}(S)$ 使得公式~\ref{ch4:equ:mrf}中的能量值 $E(F_{t}(S))$ 最小。能量方程求最小值可以通过高效的图割算法\cite{graphcut04}实现。图~\ref{ch4:fig:mrf}中给出了本章提出的MRF优化方法的一个计算实例。其中图~\ref{ch4:fig:mrf}(a)和(b)分别为基于运动线索和基于外观背景模型的粗略前景分割结果，图~\ref{ch4:fig:mrf}(c)中为视频中前一帧图像的前景结果，图~\ref{ch4:fig:mrf}(d)为本章提出的MRF优化方法得到的优化后结果。从图~\ref{ch4:fig:mrf}(d)中可以看到，优化后的前景结果的准确度明显好于输入的两个粗略结果，证明了本章提出的基于超像素的MRF优化方法的有效性。由于本章算法MRF能量方程是在超像素上建立的，与基于像素的方法\cite{Multitransform,SubspaceTracking}相比，本章所提出的算法在计算速度上具有较大优势。为了保证提取前景的精度，在本章算法中超像素大小相对较小，每个超像素大约包含25个像素。 \par
+
 
  \section{实验结果与分析}
  \label{ch4:sec:results}
- \subsection{Part A}
-We have tested the proposed algorithm on the test video sequences from Hopkins dataset \cite{HopKinsDataSet} (cars1-8, people1-2) and Ref. ~\citenum{ParticleCVPR06} (vcar, vperson) that have been used in \cite{iccv2009,LimPRFloating,Multitransform,kwak2011Generalized} on the same topic. Some of the ground truth images are provided by the datasets \cite{HopKinsDataSet}, the rest ones were manually generated by extracting all the moving objects. \par
-In our experiments, an $8\times8$ grid is used to divide the input images into 64 cells for ASAP warping, the $threshold_{rg}$ for SSRG in $Algorithm 1$ is set to the average color difference among the adjacent superpixels in each frame. The weighting parameters in Eq.(4) are set as follows: $\lambda_{1} = 0.5, \lambda_{2} = 0.35, \lambda_{3} = 0.15$. The confidence term $c$ in Eq.(3) is set to $0.75$. We keep the same parameter settings for all the experiments. \par
-In Figure 5, some of the results are demonstrated and compared with three other state-of-the-art ones \cite{kwak2011Generalized,Multitransform,5.8s}.
-\begin{figure*}[!htbp]
+ \subsection{实验一}
+ \label{ch4:sec:sub:mrst}
+
+为了测试本章提出算法的有效性，在Hopkins视频数据集\cite{HopKinsDataSet}中的(cars1-8, people1-2)视频、文献~\inlinecite{ParticleCVPR06}中的 (vcar, vperson)等视频上对本章提出的算法进行了测试。由于目前还没有一个针对移动相机拍摄视频的测试数据库，但是大部分研究移动相机视频背景减除技术的论文均在上述视频上进行了实验\cite{iccv2009,LimPRFloating,Multitransform,kwak2011Generalized}。由于Hopkins视频数据集并没有提供每一帧图像的正确前景结果，在实验前通过手动的方式提取每一帧中的准确前景用于算法准确性评估。\par
+在本章的实验中，根据实验中视频大小以及文献~\cite{Liu_2013ASAP}的建议,在ASAPW过程中将输入图像帧分为 $8\times8$ 的均匀网格。算法~\ref{ch4:alg:ssrg}中的区域增长门限 $threshold_{rg}$ 的值设置为每帧图像中相邻超像素颜色距离的平均值。公式~\ref{ch4:equ:mrf}中的权重参数设置为$\lambda_{1} = 0.5, \lambda_{2} = 0.35, \lambda_{3} = 0.15$。公式~\ref{ch4:equ:fgprop}中的可信度权重因子$c$ 设置为$0.75$。在所有视频的测试中均使用同样的参数配置。 \par
+在图~\ref{ch4:fig:result}中，给出了本章算法在部分视频图像中的测试结果以及与当前领先的算法\cite{kwak2011Generalized,Multitransform,5.8s}的比较。其中图~\ref{ch4:fig:result}的第一行分别为为cars2视频的第20帧图像，cars3视频的第19帧图像， cars4视频的第40帧图像，people1视频的第40帧图像以及people2视频的第16帧图像。图~\ref{ch4:fig:result}的第二行为正确的前景结果，图~\ref{ch4:fig:result}的第三至第六行为文献~\inlinecite{Multitransform,kwak2011Generalized,5.8s}中算法的结果以及本章算法的结果，其中用暗色表示算法检测出的背景区域，前景区域保持原来的颜色。
+
+\begin{figure}[!htbp]
 \begin{center}
 % Use the relevant command to insert your figure file.
 % For example, with the graphicx package use
@@ -249,22 +273,25 @@ In Figure 5, some of the results are demonstrated and compared with three other 
 %  \includegraphics[width=0.15\textwidth]{c3_ours.png}
 %  \includegraphics[width=0.15\textwidth]{p1_ours.png}
 %  \includegraphics[width=0.15\textwidth]{p2_ours.png}\\
-\includegraphics[width=0.9\textwidth]{ch4/fig5.eps}\\
+\includegraphics[width=1.0\textwidth]{ch4/fig5.eps}\\
 
 % figure caption is below the figure
 \end{center}
-\caption{Comparisons with three other algorithms for cars2(20th frame), cars3(19th frame), cars4(40th frame), people1(40th frame) and  people2(16th frame). Row 1 to row 2 show the input frame and the ground truth of moving foreground. Row 3 to row 6 show the results of Refs. ~\citenum{Multitransform,kwak2011Generalized,5.8s}, and ours.}
-\label{fig:4}       % Give a unique label
-\end{figure*}
-The results of Ref.~\citenum{kwak2011Generalized,Multitransform} are copied from Ref.~\citenum{Multitransform}, the implementation of Ref.~\citenum{5.8s} is obtained from the web page of the authors\footnote{https://sites.google.com/site/homekmyi/}. Some of the results are summarized in Table 1. It can be seen that, in most cases, the accuracy of our method outperforms all the three methods in Table 1, and our method achieves the best results on average. The F-score value of our method is slightly higher than Ref.~\citenum{Multitransform}, even though we employ the sparse optical flow and superpixel-level MRF optimization framework.\par
-In the first few frames, the results of our method may be noisy. This is because our method relies on the sample-based background model. If the foreground is already in the first frame, it will be initialized into the background model and cause the false foreground results. As our algorithm continues running, these noises will disappear rapidly along with the model updating and the motion-cue-involved global optimization. In the quantitative evaluation of our method, the results of the first 5 frames in each test sequence were ignored. Our motion cue is based on the assumption that the dominant trackable feature points are from the background. For the video frames that violate this assumption, e.g., a close-up view of a walking person, our method would fail.\par
+\caption{算法比较结果}
+\label{ch4:fig:result}       % Give a unique label
+\end{figure}
+
+文献~\inlinecite{kwak2011Generalized,Multitransform}的结果来自于文献~\citenum{Multitransform}，文献~\inlinecite{5.8s} 的源代码来自于作者的个人网站\footnote{https://sites.google.com/site/homekmyi/}。从图~\ref{ch4:fig:result}中可以看到，本文算法与文献~\inlinecite{Multitransform}算法提取的前景相对于文献\cite{kwak2011Generalized,5.8s}的结果 要更加准确。为了进行定量分析，使用提取的前景像素与正确值之间比较得到的精度、召回率以及F-Score指标来评估算法的有效性。其中精度$P$定义为，
+$ P = TP/(TP+FP)$，召回率$R$定义为$R = TP/(TP+FN)$，F-Score定义为$F = (2 \times P \times R)/(P + R)$，其中$TP,FP,FN,TN$分别为前景结果与正确前景比较后统计的正确前景像素数量，错误前景像素数量，错误背景像素数量以及正确背景像素数量。从定义可以看出，这三个指标的最大值均为1，且指标越高说明算法的准确度越好。表~\ref{ch4:tab:result1}中列出了本章算法与文献~\inlinecite{kwak2011Generalized,Multitransform}算法在12个视频中得到的平均精度、召回率和F-Score值。从表~\ref{ch4:tab:result1}中可以看出，在大多数情况下，本章算法得到的前景准确度高于其他算法，并且本章算法在三个指标上均得到了最高的平均值。 在使用稀疏光流和基于超像素的MRF优化的情况下，本章算法的平均 F-score值仍然比文献~\inlinecite{Multitransform}中基于稠密光流和像素级MRF的算法略高。\par
+
+由于本章的算法基于运动线索和背景模型，当输入视频的第一帧图像中已经包含前景对象时，背景模型会在初始化时将前景标为背景。这会造成本章算法提取的前景结果在视频的前几帧包含一些错误的前景。随着本章算法继续运行，这些错误前景像素会随着背景模型更新以及包含运动线索的全局优化过程快速消失。当输入视频的第一帧不包含前景对象时，并不会存在上诉的问题。在实验中对比时，忽略将每个测试视频的前五帧图像。由于本章算法的运动线索来自于SSRG算法，并假设可追踪的大部分特征点来自于背景。在自然环境中拍摄的大多数视频均满足这一假设，但是当视频中不满足这一假设时，例如行走的人的局部特写镜头，本章算法可能无法得到基于运动线索的粗略结果，从而造成算法无法得到准确的前景。\par
 
 
-\begin{table*}
-
+\begin{table}[htb]
+\resizebox{\textwidth}{!}{
 % table caption is above the table
 \caption{Average $precision(P)$, $recall (R)$, and $F-score (F)$ values for our and state-of-the-art methods. The best scores are denoted in bold. }
-\label{tab:1}       % Give a unique label
+\label{ch4:tab:result1}       % Give a unique label
 % For LaTeX tables use
 \begin{tabular}{ccccccccccccc} \hline
 \multicolumn{1}{c|}{\multirow {2}{*}{}}&\multicolumn{3}{c|}{ours}& \multicolumn{3}{c|}{\citenum{Multitransform}}& \multicolumn{3}{c|}{\citenum{kwak2011Generalized}}& \multicolumn{3}{c}{\citenum{5.8s}}\\
@@ -287,13 +314,13 @@ In the first few frames, the results of our method may be noisy. This is because
 \multicolumn{1}{c|}{average}&\multicolumn{1}{c}{\textbf{0.860}}&\multicolumn{1}{c}{\textbf{0.928}}&\multicolumn{1}{c|}{\textbf{0.889}}&\multicolumn{1}{c}{0.829}&\multicolumn{1}{c}{0.910}&\multicolumn{1}{c|}{0.868}&\multicolumn{1}{c}{0.670}&\multicolumn{1}{c}{0.729}&\multicolumn{1}{c|}{0.698}&\multicolumn{1}{c}{0.597}&\multicolumn{1}{c}{0.333}&\multicolumn{1}{c}{0.428}\\
 \hline
 
-\end{tabular}
-\end{table*}
+\end{tabular}}
+\end{table}
 
 
 \begin{table}
 \caption{Comparisons of computation speed and foreground detection accuracy}
-\label{tab:2}       % Give a unique label
+\label{ch4:tab:1}       % Give a unique label
 \begin{tabular}{cccc}
 
   \hline
@@ -398,4 +425,4 @@ To show the extensibility of the proposed algorithm. We have also tested our alg
 \end{table}
  \section{本章小结}
  \label{ch4:sec:conclusions}
- In this paper, a fast background subtraction algorithm for freely moving cameras is proposed. Our method mainly relies on two kinds of cues to effectively detect foreground objects in videos captured by moving cameras. The first cue is based on the sample consensus appearance model, in which ASAP warping technique is adopted to robustly estimate and compensate the camera motions. Then the warped frame is compared with the background model to get the raw segmentations for the image frames. On the other hand, another important cue to distinguish the foreground is that the motion of the foreground is different from the motion induced by the camera. Comparing these superpixel flows with the estimated camera motion, some sparse background seeds can be obtained. Another raw segmentation can be obtained by extending these seeds to the entire frame via the proposed SSRG algorithm.  To refine these raw results, a superpixel-based  temporal coherent MRF optimization framework is built, and the final foreground/background labelling is obtained via the graph-cut algorithm. Our method does not rely on any preprocessing steps for computing the dense optical flows or point trajectories, it is simple and easy to implement. Extensive experiments show that the proposed algorithm achieves the state-of-the-art foreground detection accuracy, while being much faster than other competing methods.
+ In this paper, a fast background subtraction algorithm for freely moving cameras is proposed. Our method mainly relies on two kinds of cues to effectively detect foreground objects in videos captured by moving cameras. The first cue is based on the sample consensus appearance model, in which ASAP warping technique is adopted to robustly estimate and compensate the camera motions. Then the warped frame is compared with the background model to get the raw segmentations for the image frames. On the other hand, another important cue to distinguish the foreground is that the motion of the foreground is different from the motion induced by the camera. Comparing these superpixel flows with the estimated camera motion, some sparse background seeds can be obtained. Another raw segmentation can be obtained by extending these seeds to the entire frame via the proposed SSRG algorithm.  To refine these raw results, a superpixel-based  temporal coherent MRF optimization framework is built, and the final foreground/background labelling is obtained via the graph-cut algorithm. Our method does not rely on any preprocessing steps for computing the dense optical flows or point trajectories, it is simple and easy to implement. Extensive experiments show that the proposed algorithm achieves the state-of-the-art foreground detection accuracy, while being much faster than other competing methods. 
