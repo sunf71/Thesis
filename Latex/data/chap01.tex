@@ -4,7 +4,7 @@
 \section{研究意义}
 \label{sec:first}
 视觉是人类感知世界最直接和重要的方法之一，光线通过眼睛、视网膜、大脑等器官的处理，最终形成我们所感知的图像。随着科技的发展，数码相机、摄像机等的出现使得数字图像和视频成为了人们日常生活中最常见的数字媒体之一。特别是随着近年来智能手机，移动互联网、社交网络的飞速发展和普及，人们随时随地都可以将眼前所见拍摄成图像或视频，并通过网络分享给自己在世界各地的亲朋好友。这些海量的数字图像和视频信息的处理已经成为计算机科学等领域重要的研究内容。当前，图像和视频处理已经从传统的基于像素的处理，例如图像去噪、图像增强、图像压缩等，逐步转移到基于内容的处理，例如基于内容的编辑、基于内容的检索等~\cite{CMM12THU}。根据经验，我们在观察图像或视频时，一般会将注意力集中在某些感兴趣区域，例如，在观看电影时我们的视觉注意力主要集中在主要角色身上。生物学家和心理学家通过研究和实验证实，人类的视觉系统只对图像的某些局部进行处理，而对其余部分几乎完全忽略~\cite{treisman1980a}~\cite{Koch1985Shifts}。一般将人类视觉系统感兴趣的这类对象称为前景对象或显著性对象(Saliency Objects)；相反，图像中的另外一部分则称为背景。图像背景减除，或前景检测，是指在图像中将背景部分去除，从而使前景对象和背景对象分离的一种技术。例如，在图~\ref{fig:1}中，~\ref{fig:subfig1}中为输入图像，~\ref{fig:subfig2}中为背景减除技术提取的前景对象，其中用白色表示前景区域，黑色表示背景区域。\par
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering%
   \subcaptionbox{输入图像\label{fig:subfig1}} %标题的长度，超过则会换行，如下一个小图。
     {\includegraphics[width=0.3\textwidth]{0_0_818.jpg}}%
@@ -15,7 +15,7 @@
   \label{fig:1}
 \end{figure}
 视频由连续的图像序列组成。在视频中，考虑根据相对运动情况，一般将相对相机运动的对象视为前景，其它相对静止的部分则归为背景。当拍摄视频的摄像机保持固定时，分离前景和背景只需定位那些存在运动的对象。而当拍摄视频的摄像机也存在旋转、平移、缩放等运动时，会造成视频中所有像素都产生运动。这时，只能通过区分相机引起的运动和前景产生的运动来区分前景和背景。例如，在图~\ref{fig:videoBS}中，图~\ref{fig:frame1}、~\ref{fig:frame10}分别为视频中第1帧和第10帧图像，图~\ref{fig:frame1Fg}、~\ref{fig:frame10Fg}中为对应图像帧的背景减除结果，其中用白色表示前景区域，黑色表示背景区域。
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering%
   \subcaptionbox{视频第1帧图像\label{fig:frame1}}[3cm] %标题的长度，超过则会换行，如下一个小图。
     {\includegraphics[width=0.2\textwidth]{in000001.jpg}}%
@@ -43,7 +43,7 @@
 \label{sec:imageSaliency}
 图像显著性区域检测的目标是在计算机上实现像人眼一样快速判断图像中显著性区域的能力，通过这种技术提取的图像显著性区域可以广泛用于目标识别,图像编辑以及图像检索等应用。Itti等人~\cite{itti}提出了最早的显著性检测模型，该模型结合了认知心理学，神经科学和计算机科学的理论和方法。基于人类注意力自底向上，关注中心与四周差异的特点，该模型预测人眼观察图像时的焦点，能得到一系列离散的圆点形状的显著性区域预测结果，并不能得到显著性对象的准确边界。随后，显著性检测研究的热点集中在如何获得显著性对象的准确边界，并把它们从图像中分割出来。在这种情况下，显著性检测可以被看作是一个图像分割问题，目标是把图像分割为显著的和非显著的两个部分。如图~\ref{fig:SaliencyOverview}所示，图~\ref{fig:saliencyInput}为输入图像，图~\ref{fig:ITRes}为文献~\inlinecite{itti}所提出算法得到的结果，图~\ref{fig:RCRes}为文献~\inlinecite{ChengPAMI}所提出算法得到的结果，图~\ref{fig:GT}为人工标记的正确结果。
 
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering%
   \begin{subfigure}{0.2\textwidth}
     \includegraphics[width=\textwidth]{0_5_5108.jpg}
@@ -88,7 +88,7 @@ Perazzi等人~\cite{saliencyFilter}提出利用欧几里得距离来计算$D_{r}
 \label{sec:imageInpainting}
 在图像显著性分析中，一般把显著性对象称为前景对象。这些对象是人眼在观察图像时主要关注的对象。然而在另一种应用场景下，前景和背景需要根据用户的定义来确定，这时原本属于前景的对象可能被用户定义为背景。例如，如图\ref{fig:inpainting}所示，最左边图像中的三棵树原本是前景对象。但因为用户希望获得一幅只有海面和白云的图像而被标记为背景，如图\ref{fig:Inpaint_subfig2}所示，用户希望去掉所标记的对象后得到\ref{fig:Inpaint_subfig3}中的结果。
 
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering%
   \subcaptionbox{输入图像\label{fig:Inpaint_subfig1}}[3cm] %标题的长度，超过则会换行，如下一个小图。
     {\includegraphics[height=3cm]{inpaint1.png}}%
@@ -104,7 +104,7 @@ Perazzi等人~\cite{saliencyFilter}提出利用欧几里得距离来计算$D_{r}
 
 这一应用类型一般被称为图像填充(image inpainting)，或图像补全(image completion)。其中用户标注的区域为需要填充的部分，这部分区域根据用户需求而定，在很多情况下包含显著性对象。在填充时，希望能最大限度的保持图像的结构连续性和完整性，使得填充后图像在视觉上没有被修补过的痕迹。图像填充技术在图像编辑、图像去噪、图像编码领域、基于图像的渲染等应用中发挥着重要作用。在我们的日常生活中也经常遇到这样的应用场景，例如在游人如织的旅游景点拍照时会将旁边的路人拍进了画面，这时希望在不破坏原图像的条件下将其从画面中删除；去掉老照片上发黄的部分或者数据丢失后照片中的瑕疵；去掉照片上的文字标题等。\par
 假设图像 \emph{I} 中包含未知或缺失部分\(\Omega\) 以及已知区域 \(\overline{\Omega}\)，图像填充的目标是利用\(\overline{\Omega}\)中的信息，或者借助来自原图像外部的信息来填充\(\Omega\) 区域。从广义上说，可以把图像填充问题看做是一种特殊的背景减除，需要填充的\(\Omega\)相当于不需要的背景区域，而减除操作相当于用特定像素来填充这些背景区域。图像填充算法大致可以分为两类\~cite{inpaintingSurvey}，基于散射(diffusion)的方法~cite{Bertalmio:2000}和基于样本(examplar)的方法~\cite{Criminisi04regionfilling}。前者利用图像连续和平滑性(smoothness priors)的特点，通过建立参数化的偏微分方程模型方法将已知区域的信息扩散到未知区域。这类方法容易使填充后的图像产生模糊，在缺失区域较大的情况下尤为明显。另一类基于样本的方法则以小图像块为样本，不断将已知区域的结构以及纹理信息传递到位置区域。这类方法不会产生模糊问题，且对图像结构的连续性处理较好。基于样本的方法假设缺失部分的信息可以通过与之最匹配的样本来填充。如\ref{fig:examplar}所示，黑色区域为待填充的未知区域\(\Omega\)，$\psi_{p}$为以\(\Omega\)的边缘上一点$p$为中心的方块，$\psi_{q}$为\(\overline{\Omega}\)中与$\psi_{p}$最匹配的分块。
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering%
       {\includegraphics[height=6cm]{examplar.png}}
   \caption{基于样本的图像修复}
@@ -124,7 +124,7 @@ $$d(\psi_{p},\psi_{q})=\sum_{i}^{N}\sum_{j}^{N}\left \| \psi_{p}(i,j)-\psi_{q}(i
 在下一时刻，将视频图像帧$I(t)$与$B(t)$进行匹配，其中匹配成功的像素标记为背景，反之则为前景。最后利用所得前景结果和当前帧信息对$B(t)$进行更新，得到$B(t+1)$。
 由此可见，背景模型的对算法的准确度至关重要。
 
-\begin{figure}[h]
+\begin{figure}[htb]
   \centering%
   {\includegraphics[width=0.9\textwidth]{bsflowchart.png}}%
   \caption{背景减除流程图~\cite{BouwmansOverview}}
@@ -136,7 +136,7 @@ $$d(\psi_{p},\psi_{q})=\sum_{i}^{N}\sum_{j}^{N}\left \| \psi_{p}(i,j)-\psi_{q}(i
 $$M(x)=\{v_{1},v_{2},...,v_{N}\}$$ \par
 如图~\ref{fig:vibe}所示，为了区分某像素$v(x)$是否属于背景，ViBe算法在二维欧几里德色彩空间内计算以$v(x)$为中心的圆形范围$S_{R}(v(x))$内的采样值与背景模型$M(x)$交集的数量，当$\#\{S_{R}(v(x))\bigcap\{v_{1},v_{2},...,v_{N}\} \}$大于或等于某门限值时像素$v(x)$被判为背景，否则为前景。
 
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering%
   {\includegraphics[width=0.5\textwidth]{vibe.png}}%
   \caption{ViBe算法示意图~\cite{Barnich2011ViBe}}
