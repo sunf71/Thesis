@@ -10,7 +10,7 @@
 
 为了检测移动相机拍摄视频中的移动对象，一般考虑两方面的线索，即来运动相关的线索和外观相关的线索。对于运动相关的线索，主要的困难在于区分来自于相机的运动和移动前景引入的运动。在之前的研究工作当中，一般使用全局单应性矩阵(global homography)\cite{5.8s,LiuCVPR09} 或者基础矩阵(fundamental matrix) \cite{kwak2011Generalized,LimPRFloating}来估算相机的运动，但是根据极线集合理论 \cite{Multitransform}，只有在相机运动不包含平移或者场景中所有点共面的情况下，才可以用一个全局的单应性矩阵来描述相邻帧图像中像素一对一的对应关系。然而在实际应用中，这两个假设几乎很难满足。在本章所提出的算法中，引入用于视频稳定技术\cite{Liu2009ASAP,Liu_2013ASAP} 的了ASAPW技术来估算并补偿相机运动。与之前的其他方法，相比ASAPW通过图像不同区域的多个单应性矩阵来估算相机运动，使得算法在理论和实践上都更加鲁棒，可以处理任意情况下的相机运动。在本章算法中，基于文献~\inlinecite{Liu_2013ASAP}中的算法，提出了一个更加高效的运动估补偿方法。\par
 
-大多数主流的视频背景减除算法都需要额外的预处理步骤来计算视频帧图像的稠密光流 \cite{Multitransform,gbsuperpixel}、点轨迹 \cite{iccv2009,Cui2012,SubspaceTracking}、或者进行运动分割\cite{kwak2011Generalized}。这些预处理步骤本身的计算难度和计算量均较大。本章算法中没有使用计算量大的稠密光流，而是利用效率更高的稀疏光流获得稀疏的背景种子点。利用图像的连续性特点，通过SSRG算法将这些背景种子点扩散至整幅图像。\par
+大多数主流的视频背景减除算法都需要额外的预处理步骤来计算视频帧图像的稠密光流 \cite{Multitransform,gbsuperpixel}、点轨迹 \cite{iccv2009,Cui2012,SubspaceTracking}、 或者进行运动分割\cite{kwak2011Generalized}。这些预处理步骤本身的计算难度和计算量均较大。本章算法中没有使用计算量大的稠密光流，而是利用效率更高的稀疏光流获得稀疏的背景种子点。利用图像的连续性特点，通过SSRG算法将这些背景种子点扩散至整幅图像。\par
 
 对于基于像素外观的线索，本章算法引入了与参考文献~\inlinecite{Barnich2011ViBe,pbas,subsenseTIP}类似的基于背景像素采样的无参数的背景模型。根据文献
  ~\inlinecite{CD2014}的报道，在静止相机视频背景减除算法准确率比较中，基于采样一致模型的背景减除算法要优于基于混合高斯模型(gaussian mixture model, GMM)的算法。据作者所知，基于采样一致模型的背景模型还没有被用于移动相机视频背景减除技术当中。主要的原因在于基于采样的模型对运动补偿的误差非常敏感。由于本章算法利用ASAPW来准确的补偿相机运动，使得可以使用基于采样模型的背景模型。在本章算法中，对文献~\inlinecite{subsenseTIP}中提出的背景模型进行了改进，使得其更加适用于移动相机情况。此外，本章算法中通过CUDA~\cite{CUDA}并行化将该背景模型在GPU上进行了实现，大大提高了计算速度。\par
@@ -42,6 +42,10 @@ Barnich等人提出了一种基于无参数采样一致模型的背景减除算�
 文献~\inlinecite{kwak2011Generalized}使用贝叶斯滤波框架来估算视频帧图像中像素的运动以及外观变化模型，提出了一种通用的移动相机视频背景减除算法。该算法需要在第一帧获得较高准确度的前景分割结果，并在随后的图像帧中对前景进行可靠跟踪。因此文献~\inlinecite{kwak2011Generalized}的算法无法处理那些包含复杂运动的长视频。文献~\inlinecite{gbsuperpixel}提出了一种基于超像素概率密度估计的视频背景减除算法，该算法建立超像素级别的运动模型和外观模型，并通过二进制置信传播（binary belief propagation）获得像素级别的前景检测结果。由于算法复杂度较高，该算法处理一帧图像需要6秒。\par
 
 另一类针对移动相机的视频背景减除算法依靠像素点轨迹信息来估算视频中的前景。文献~\inlinecite{iccv2009}提出了一种基于滑动窗口的像素点轨迹矩阵分解的算法。该算法使用RANSAC\cite{Ransac}算法估计背景像素点轨迹。文献~\inlinecite{Cui2012}提出一种将点轨迹矩阵分解为低秩部分（背景）和群稀疏部分（前景）。文献~\inlinecite{SubspaceTracking}提出一种基于像素点轨迹的在线背景建模方法，该方法通过跟踪描述背景运动的线性子空间建立背景模型。 在效率方面，文献~\inlinecite{SubspaceTracking}中算法需要1.8秒左右时间处理Hopkins数据集\cite{HopKinsDataSet} 中的一帧图像。\par
+
+与上述方法不同，Yilmaz等人~\cite{contourTracking04}提出了一种基于轮廓(contour)的移动相机拍摄视频前景跟踪方法。通过主动轮廓模型(active contours)\cite{Snakes}可以对视频和图像中的前景进行跟踪。主动轮廓模型的目标是获得紧密包围对象的轮廓，一般通过能量最小化的方式实现。文献~inlinecite{contourTracking04}将能量函数定义为：
+$$ E(\Gamma) = \int_{0}^{1} E_{image}(\mathbf{v})+ E_{shape}(\mathbf{v}) ds,$$
+其中，$E_image$为根据图像本身的颜色和纹理分布，$E_shape$则基于轮廓跟踪的历史数据，保证在前景被遮挡的情况下保持对象的形状。该算法可以在不需要估算相机运动的情况下对移动相机拍摄视频中的前景对象进行可靠跟踪，而且能处理前景被遮挡的情况。但是由于是基于轮廓跟踪的方法，容易受到背景区域中边缘等结构信息的感人。此外基于变分的方法求解时需要多次迭代，造成算法比较耗时。
 
  \section{算法描述}
  \label{ch4:sec:algorithm}
@@ -273,15 +277,16 @@ $$ T(f_{t}(s)) = v_{3}(1-\delta(F_{t}(s)-F_{t-1}(\hat{S_{t-1}}(s))))\cdot e^{-\f
 %  \includegraphics[width=0.15\textwidth]{c3_ours.png}
 %  \includegraphics[width=0.15\textwidth]{p1_ours.png}
 %  \includegraphics[width=0.15\textwidth]{p2_ours.png}\\
-\includegraphics[width=1.0\textwidth]{ch4/fig5.eps}\\
-(a) \quad (b) \quad (c) \quad (d) \quad (e)\quad
+\rotatebox{90}{本章算法 \quad ~\inlinecite{5.8s}算法   ~\inlinecite{kwak2011Generalized}算法  ~\inlinecite{Multitransform}算法 }
+\includegraphics[width=0.9\textwidth]{ch4/fig5.eps}\\
+(a)cars2 \quad\quad (b)car3 \quad\quad\quad (c)cars4 \quad\quad\quad (d)people1 \quad\quad (e)people2
 % figure caption is below the figure
 \end{center}
 \caption{算法比较结果}
 \label{ch4:fig:result}       % Give a unique label
 \end{figure}
 
-文献~\inlinecite{kwak2011Generalized,Multitransform}的结果来自于文献~\citenum{Multitransform}，文献~\inlinecite{5.8s} 的源代码来自于作者的个人网站\footnote{https://sites.google.com/site/homekmyi/}。从图~\ref{ch4:fig:result}中可以看到，本文算法与文献~\inlinecite{Multitransform}算法提取的前景相对于文献\cite{kwak2011Generalized,5.8s}的结果 要更加准确。为了进行定量分析，使用提取的前景像素与正确值之间比较得到的精度、召回率以及F-Score指标来评估算法的有效性。其中精度$P$定义为:
+文献~\inlinecite{kwak2011Generalized,Multitransform}的结果来自于文献~\inlinecite{Multitransform}，文献~\inlinecite{5.8s} 的源代码来自于作者的个人网站\footnote{https://sites.google.com/site/homekmyi/}。从图~\ref{ch4:fig:result}中可以看到，本文算法与文献~\inlinecite{Multitransform}算法提取的前景相对于文献\cite{kwak2011Generalized,5.8s}的结果 要更加准确。为了进行定量分析，使用提取的前景像素与正确值之间比较得到的精度、召回率以及F-Score指标来评估算法的有效性。其中精度$P$定义为:
 $$ P = \frac{TP}{(TP+FP)}$$
 召回率$R$定义为：
 $$R = \frac{TP}{(TP+FN)}$$
@@ -299,7 +304,7 @@ $$F = \frac{2 \times P \times R}{(P + R)}$$
 \label{ch4:tab:result1}       % Give a unique label
 % For LaTeX tables use
 \resizebox{\textwidth}{!}{
-\begin{tabular}{ccccccccccccc} \toprule[1.5pt] 
+\begin{tabular}{ccccccccccccc} \toprule[1.5pt]
 \multicolumn{1}{c}{\multirow {2}{*}{}}&\multicolumn{3}{c}{本章算法}& \multicolumn{3}{c}{\inlinecite{Multitransform}算法}& \multicolumn{3}{c}{\inlinecite{kwak2011Generalized}算法}& \multicolumn{3}{c}{\inlinecite{5.8s}算法}\\
 \cline{2-13}
 \multicolumn{1}{c}{}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}\\
@@ -328,10 +333,10 @@ $$F = \frac{2 \times P \times R}{(P + R)}$$
 \begin{table}
 \caption{算法速度与准确度比较}
 \begin{center}
-\label{ch4:tab:result2} 
+\label{ch4:tab:result2}
 \begin{tabular}{cccc}
 
-  \toprule[1.5pt] 
+  \toprule[1.5pt]
   % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
   算法 & 预处理 & 速度(帧/秒) & F-Score \\
 \hline
@@ -375,7 +380,50 @@ $$F = \frac{2 \times P \times R}{(P + R)}$$
 在算法速度方面，本章算法在处理大小为 640$\times$480 的视频时可以到8帧/秒。在实验中，使用一台配备Intel i7 CPU和NVIDIA Geforce Titan GPU 的台式电脑。本章算法各步骤的耗时情况如图~\ref{ch4:fig:timing}所示，其中绿色标示的步骤为GPU实现。本章算法使用了OpenCV~\cite{opencv_library}中提供KLT算法的GPU版本，另外本章算法的背景模型部分也是通过CUDA~\cite{CUDA}在GPU上实现。从图~\ref{ch4:fig:timing}中可以看到，由于SSRG和MRF算法均在超像素上实现，这两步计算过程也较快。基于稀疏光流和SSRG算法，本章算法可以在70ms内获得基于运动线索的粗略前景结果。本章所提算法的速度与其他算法的比较情况如表\ref{ch4:tab:result2}所示。为了公平比较，表\ref{ch4:tab:result2}中列出了各算法在文献\inlinecite{HopKinsDataSet}中提供的四个视频(cars1, cars2, people1, people2)上得到的平均F-Score值。算法的速度和F-Score值均来自于各参考文献，其中文献~\inlinecite{Multitransform}中并没有介绍该算法的速度。这四个视频的原始大小为 $640\times480$。 与文献~\inlinecite{gbsuperpixel}算法相比，本章算法的速度大约是其 45 倍，而在精度上本章算法只比文献~\inlinecite{gbsuperpixel}算法稍差。文献\inlinecite{5.8s}所提出的算法非常快，但是其准确度与表\ref{ch4:tab:result2}中的其他算法相比差距较大，使得其无法应用于对前景检测准确度要求高的场合。此外，本章算法的一个重要优势是不需要计算稠密光流等预处理步骤，可以以即插即用的方式应用于很多准实时应用场景。
 \subsection{实验二}
 \label{ch4:sec:sub:test2}
-在本小节中，将本章所提出算法在 CD.Net 2014数据集\cite{CD2014}进行了测试。首先，对数据集中的移动相机类视频进行了测试。在该分类中，有四个移动相机拍摄的长视频，其中包含的相机运动方式是旋转、平移和缩放(Pan-Tile-Zoom, PTZ)，四个视频的平均长度是2158帧。在实验中使用~\ref{ch4:sec:sub:test1}中一样的参数设置。在算法定量分析中，使用了与文献~\cite{CD2014}一致的指标。此外，为了比较提取前景的准确度，计算提取前景图像与正确值之间的峰值信噪比(Peak Signal Noise Ratio, PSNR)，以及归一化互相关系数(Normalized Cross-Correlation, NCC)。其中PSNR的计算方法为:
+在本小节中，将本章所提出算法在 CD.Net 2014数据集\cite{CD2014}进行了测试。首先，对数据集中的移动相机类视频进行了测试。在该分类中，有四个移动相机拍摄的长视频，其中包含的相机运动方式是旋转、平移和缩放(Pan-Tile-Zoom, PTZ)，四个视频的平均长度是2158帧。在实验中使用~\ref{ch4:sec:sub:test1}节中一样的参数设置。本章算法部分检测结果以及和其他算法的比较情况如图~\ref{ch4:fig:ptzResults}所示，其中第一列视频中相机连续水平方向旋转，第二列视频中相机断续旋转，第三列视频中相机在两个位置来回切换，第四列视频中相机连续缩放。从图~\ref{ch4:fig:ptzResults}中可以看出，本章算法可以处理相机的自由运动，特别在相机连续旋转(第一列)及缩放(第四列)时得到的前景结果明显好于其他算法。\par
+
+\begin{figure}[htbp]
+  \centering
+  % Requires \usepackage{graphicx}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/in000852.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/in002272.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/in001515.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/in000505.jpg}\\
+  (a) 输入视频图像帧\\
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/gt000852.png}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/gt002272.png}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/gt001515.png}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/gt000505.png}\\
+  (c) 正确结果\\
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_ours.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_ours.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_ours.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_ours.jpg}\\
+  (d)本章算法结果\\
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_subsense.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_subsense.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_subsense.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_subsense.jpg}\\
+  (e)文献~\inlinecite{subsenseTIP}算法结果\\
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_pawcs.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_pawcs.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_pawcs.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_pawcs.jpg}\\
+  (f)文献~\inlinecite{Stcharles2015A}算法结果\\
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_sharedmodel.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_sharedmodel.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_sharedmodel.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_sharedmodel.jpg}\\
+  (g)文献~\inlinecite{Chen2015Learning}算法结果\\
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_cwisardh.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_cwisardh.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_cwisardh.jpg}
+  \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_cwisardh.jpg}\\
+  (g)文献~\inlinecite{Gregorio2014Change}算法结果\\
+  \caption{CD.Net 2014数据集\cite{CD2014}PTZ分类视频检测结果比较}\label{ch4:fig:ptzResults}
+\end{figure} \par
+
+在算法定量分析中，使用了与文献~\cite{CD2014}一致的指标。此外，为了比较提取前景的准确度，计算提取前景图像与正确值之间的峰值信噪比(Peak Signal Noise Ratio, PSNR)，以及归一化互相关系数(Normalized Cross-Correlation, NCC)。其中PSNR的计算方法为:
  $$MSE=\frac{1}{M\times N}\sum_{x,y}\left \| I_{x,y}-J_{x,y} \right \|^{2},PSNR = 20\times log_{10}\left ( \frac{255}{\sqrt{MSE}}\right )$$
  NCC的计算方法为：
 $$NCC=\frac{\sum_{x,y}\left( I_{x,y}-\bar J_{x,y}\right )\left(J_{x,y}- \bar I_{x,y} \right )}{M\times N\times Std(I) \times Std(J)}$$
@@ -393,8 +441,8 @@ $$NCC=\frac{\sum_{x,y}\left( I_{x,y}-\bar J_{x,y}\right )\left(J_{x,y}- \bar I_{
   \label{ch4:fig:nccPSNR}
 \end{figure}
 
- 
- 在表~\ref{ch4:tab:resultPTZ}中列出了本章算法的到的平均结果以及与其他领先的算法比较的结果。通过比较，在本文完成时本章算法在CD.Net 2014数据集\cite{CD2014} 的PTZ 类别中综合排名第一\footnote{见 http://wordpress-jodoin.dmi.usherb.ca/results2014/412/}。该综合排名是计算算法在7项指标中的综合排名得到的。这7项指标除了~\ref{ch4:sec:sub:test1}节中使用的精度(P)、召回率(R)、F-Score(F)之外，还包括敏感度(specificity, Sp)、错误前景率(false positive rate, FPR、错误背景率(false negative rate, FNR)以及错误分类百分比(Percentage of Wrong Classifications, PWC)，这些指标的定义为:
+
+ 在表~\ref{ch4:tab:resultPTZ}中列出了本章算法的到的平均结果以及与其他领先的算法比较的结果。通过比较，在本文完成时本章算法在CD.Net 2014数据集\cite{CD2014} 的PTZ 类别中综合排名第一\footnote{见 http://wordpress-jodoin.dmi.usherb.ca/results2014/412/}。该综合排名是计算算法在7项指标中的综合排名得到的。这7项指标除了~\ref{ch4:sec:sub:test1}节中使用的精度(P)、召回率(R)、F-Score(F)之外，还包括敏感度(specificity, Sp)、错误前景率(false positive rate, FPR)、错误背景率(false negative rate, FNR)以及错误分类百分比(Percentage of Wrong Classifications, PWC)，这些指标的定义为:
  $$ Sp = \frac{TN}{(TN + FP)},FPR = \frac{FP}{(FP+TN)}, FNR = \frac{FN}{(TP+FN)} $$
  $$ PWC = 100 \times \frac{(FN+FP)}{(TP+FN+FP+TN)} $$
  其中FPR、FNR、PWC均表示错误概率，值越小表示算法越好，其他指标均越大越好。
