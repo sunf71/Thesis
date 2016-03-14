@@ -83,11 +83,11 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
  从$S$中取一个超像素$s$, 将其加入区域$R[i]$ \;
  $i++, D=0,$ 初始化空集$N$ \;
  \While {$D<T$} {
- 将s四邻域中未访问的超像素加入$N$ \;
+ 将$s$四邻域中未访问的超像素加入$N$ \;
   $S_m = \arg \min_{s \in N}S_d(s,R[i])$ \;
  $D=S_d(S_m,R[i])$, $S_m$加入$R[i]$, $s=S_m $\;
- 更新$R[i]$直方图, 从N中删除Sm\;}
- 将N中的超像素添加到C中\;}
+ 更新$R[i]$直方图, 从$N$中删除$S_m$\;}
+ 将$N$中的超像素添加到$C$中\;}
 \end{algorithm}
 
 ~\ref{ch5:alg:srg}算法中，$T$的值为$T= c \times D_c + (1-c) \times D_g$。图~\ref{ch5:fig:srg}所示为区域增长算法的一个计算实例。 图~\ref{ch5:fig:sub:superpixel}是输入图像的超像素分割结果， 图~\ref{ch5:fig:sub:srg}是区域增长算法的输出结果， 其中用不同的颜色表示不同的区域。 从图~\ref{ch5:fig:sub:srg}中可以看到， ~\ref{ch5:alg:srg}算法能有效地将具有连续性的背景区域超像素合并到一起， 使得这些大区域所包含的超像素数量要明显多于前景区域。 因此本章算法直接将预处理后超像素数量大于15的区域所包含的超像素判为背景。 对于剩下的超像素， 再用~\ref{ch5:sec:sub:sub:motionC}节介绍的算法， 根据其光流与相机运动的一致性来进一步判断其是否为前景。
@@ -111,13 +111,12 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
  \begin{enumerate}
    \item 若摄像机没有平移只有旋转， 有$\mathbf{\acute{p}}=\mathbf{\acute{K}RX}$， 即$\mathbf{p}$ 与$\mathbf{\acute{p}}$ 之间的变换可以用单应性矩阵$\mathbf{H}_R$表示。
    \item 若场景点共面， 不失一般性， 假设场景点都位于平面$z=0$之上。 矩阵$\mathbf{Q}$的第3列可以忽略， 因此有：
-   \begin{equation}
-   \begin{cases}
-    \mathbf{p}=[\mathbf{Q_1},\mathbf{Q_2},\mathbf{Q_4}]\mathbf{X} = \mathbf{HX},   \\
-   \mathbf{\acute{p}}=[\mathbf{\acute{Q}_1},\mathbf{\acute{Q}_2},\mathbf{\acute{Q}_4}]\mathbf{X} = \mathbf{\acute{H}X},  \\
-    \mathbf{\acute{p}} = (\mathbf{\acute{H}\acute{H}^{-1}})=\mathbf{H}_{\pi} \mathbf{p}  \\
-   \end{cases}
-   \end{equation}
+
+
+    $$\mathbf{p}=[\mathbf{Q_1},\mathbf{Q_2},\mathbf{Q_4}]\mathbf{X} = \mathbf{HX},  \mathbf{\acute{p}}=[\mathbf{\acute{Q}_1},\mathbf{\acute{Q}_2},\mathbf{\acute{Q}_4}]\mathbf{X} = \mathbf{\acute{H}X},  $$
+   $$ \mathbf{\acute{p}} = (\mathbf{\acute{H}\acute{H}^{-1}})=\mathbf{H}_{\pi} \mathbf{p} $$
+
+
   即$\mathbf{p}$ 与$\mathbf{\acute{p}}$ 之间的变换可以用单应性矩阵$\mathbf{H}_{\pi}$表示。
  \end{enumerate}
 
@@ -132,61 +131,105 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
 \end{cases}
 \end{equation}
 	 	
-而对于前景特征点，因为其相对于背景发生了运动，其相对光流 并不满足式\ref{ch5:equ:relFlow}； 其中,  .
-若考虑深度等因素对特征点位置的影响， 可能会有一些背景上的特征点并不满足式(2). 而当t取值较小时, 几乎全部前景上的特征点都不会满足式(2). 在估算单应性矩阵时只需要最少4组特征点, 因此在筛选时并不需要得到全部背景特征点, 只需去除位于前景上的特征点. 本文利用这种基于相对光流的思想, 选取满足式(2)的部分背景特征点来估算相机运动. 实验中, 将t的值固定设置为1.0. 背景点A的选择算法为 , 其中,  . 为验证筛选算法的有效性, 定义误检率Pe为pb中前景特征点所占百分比,  .
-我们在Hopkins视频数据库[18]中的10个视频上进行了实验, 对本文提出的背景特征点筛选算法与基于RANSAC的背景特征点筛选算法进行了对比. 实验中, 在所有视频中均将2种算法的阈值固定设为1.0. 本文算法得到的Pe平均值为0.32%, 而RANSAC算法筛选的背景特征点Pe平均值为0.36%.
-本文提出的特征点算法的一个计算实例如图4所示, 其中, 圆圈标注的为筛选后得到的背景特征点, 方块标注的则为前景特征点.
+而对于前景特征点，因为其相对于背景发生了运动，其相对光流 并不满足式\ref{ch5:equ:relFlow}； 其中，$ \mathbf{V}_f = \mathbf{p}_f - \mathbf{A},\mathbf{V}_f = \mathbf{\acute{p}}_f - \mathbf{\acute{A}}$  。\par
+若考虑深度等因素对特征点位置的影响， 可能会有一些背景上的特征点并不满足公式\ref{ch5:equ:relFlow}。 而当$t$取值较小时， 几乎全部前景上的特征点都不会满足公式~\ref{ch5:equ:relFlow}。 在估算单应性矩阵时只需要最少4组特征点，因此在筛选时并不需要得到全部背景特征点， 只需去除位于前景上的特征点。 本文利用这种基于相对光流的思想，选取满足公式~\ref{ch5:equ:relFlow}的部分背景特征点来估算相机运动。实验中， 将$t$的值固定设置为1.0。 背景点$A$的选择算法为$A = \arg \min_{a}\sum_{p}{\|\mathbf{V}_{pa} - \mathbf{V}_{\acute{p}\acute{a}}\|}^2$ ，其中，$ \mathbf{V}_{pa} = \mathbf{p} - \mathbf{a}$。 为验证筛选算法的有效性， 定义误检率$P_e$为$p_b$中前景特征点所占百分比，$$P_e= \frac{|p_b \in F |}{|P_b|} \times 100. $$
+作者在Hopkins视频数据库~\cite{HopKinsDataSet}中的10个视频上进行了实验， 对本章提出的背景特征点筛选算法与基于RANSAC的背景特征点筛选算法进行了对比。 实验中， 在所有视频中均将2种算法的阈值固定设为1.0。 本文算法得到的$P_e$平均值为$0.32 \%$, 而RANSAC算法筛选的背景特征点$P_e$平均值为$0.36\%$。 \par
+本文提出的特征点算法的一个计算实例如图~\ref{ch5:fig:fpFilter}所示， 其中，红色圆圈标注的为筛选后得到的背景特征点， 蓝色圆圈标注的则为前景特征点，蓝色线连接的为背景点$A$和$\acute{A}$。\par
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=0.95\textwidth]{ch5/fig4.png}
+  \caption{基于相对光流的特征点筛选}\label{ch5:fig:fpFilter}
+\end{figure}
 
-\subsubsection{}
+
+\subsubsection{基于分块的单应性矩阵估算}
 \label{ch5:sec:sub:sub:homography}
-本文提出一种基于分块的单应性矩阵估算算法, 统一处理各种相机运动, 使得图像中不同区域有不同的单应性矩阵. 考虑到分块的连续性, 在计算某分块A的单应性矩阵时, 除了利用分块内的特征点, 还加入了其周围八邻域中已知单应性矩阵的分
+为了统一处理各种相机运动，本章提出一种基于分块的单应性矩阵估算算法， 使得图像中不同区域有不同的单应性矩阵。首先将视频帧图像均匀分为$N \times N $个均匀网格，分别在各个网格内估算适用于网格范围内的单应性矩阵用于描述区域内的运动情况。考虑到分块的连续性， 在计算某分块$A$的单应性矩阵时， 除了利用分块内的特征点， 还加入了其周围八邻域中已知单应性矩阵的分块$N$与$A$的边界点$p_B$。$p_B$为$N$和$A$中心点之间连线的中点。本章提出的基于分块的相机运动估算算法如算法~\ref{ch5:alg:blockHomo}所示。\par
+\renewcommand{\algorithmcfname}{算法}
+\begin{algorithm}
+\caption{基于分块的相机运动估算算法}
+\label{ch5:alg:blockHomo}
+\LinesNumbered
+\KwData { 图像$I_1,I_2$的匹配特征点对$F$, 网格大小$N$, 单应性矩阵估算最小特征点数$F_{min}$}
+\KwResult {单应性矩阵数组$H$}
 
-
-
-
-图4  基于相对光流的特征点筛选
-
-块N与A的边界点 ,  为N和A中心点之间连线的中点.
-算法2. 基于分块的相机运动估算算法
-输入. 图像I1 , I2的匹配特征点对F, 网格大小N, 单应性矩阵估算最小特征点数Fmin.
-输出. 单应性矩阵数组H.
-Step1. 将I1 , I2均匀划分为 个网格
-Step2. For i=1: {
-Step3. 如果 已知, 继续循环;
-Step4. 将以i为中心半径为r=1的区域内的特征点对加入P(i,r);
-Step5. 将i八邻域中单应性矩阵已知分块N与i的边界点PB及对应的 加入P(i,r);
-Step6. 递增r直到P(i,r)中特征点数量大于Fmin;
-Step7. 利用P(i, r)估算 , 区域中各分块 ;}.
-在齐次坐标下, 3×3的单应性矩阵有8个未知参数, 因此最少只需要4对匹配特征点就可以估算出矩阵. 为了消除错误匹配特征点带来的误差, 将估算单应性矩阵的最小特征点数设为10. 本文算法假设在图像中背景区域的特征点数要大于这个最小门限, 在绝大部分视频中这个假设很容易满足.
+将$I_1 , I_2$均匀划分为 $N$个网格\;
+ \For{$i=1:N \times N$} {
+       如果$H[i]$ 已知, 继续循环\;
+       将以$i$为中心半径为$r=1$的区域内的特征点对加入$P(i,r)$ \;
+       将$i$八邻域中单应性矩阵已知分块$n$与$i$的边界点$P_B$及对应的$H[n] \times P_B$ 加入$P(i,r)$\;
+       递增$r$直到$P(i,r)$中特征点数量大于$F_{min}$ \;
+       利用$P(i, r)$ 估算$h$ , 区域中各分块$ H[k] = h $ \;}
+\end{algorithm}
+在齐次坐标下， $3 \times 3$的单应性矩阵有8个未知参数， 因此最少只需要4对匹配特征点就可以估算出矩阵。为了消除错误匹配特征点带来的误差， 将估算单应性矩阵的最小特征点数设为10。 本章算法假设在图像中背景区域的特征点数要大于这个最小门限， 在绝大部分视频中这个假设很容易满足。
 
 
 \subsubsection{运动一致性验证}
 \label{ch5:sec:sub:sub:motionC}
 
- 对预处理后可能为前景的超像素, 利用KLT计算超像素中心点的光流, 并将其与估算的相机运动进行比较. 假设像素点 位于第i 个分块内, 利用算法2得到的单应性矩阵数组H可以得到变换后的坐标 , 设p点的光流为 . 通过超像素中心点处光流与相机运动的欧几里德距离  来度量这两者的一致性. 当 时, 将该超像素判为前景, 反之为背景. 其中 固定设为2.0.
+ 对预处理后可能为前景的超像素， 利用KLT计算超像素中心点的光流，并将其与估算的相机运动进行比较。假设像素点$\mathbf{p}=(x,y,1)$ 位于第$i$ 个分块内， 利用算法~\ref{ch5:alg:blockHomo} 得到的单应性矩阵数组$\mathbf{H}$ 可以得到变换后的坐标:
+ $$ \mathbf{\acute{p}}_h = \mathbf{H}[i]p^T = {(w_x,w_y,1)}^T $$ ,
+设$\mathbf{p}$ 点的光流为$\acute{p}_f = (d_x,d_y)$ 。 通过超像素中心点处光流与相机运动的欧几里德距离$ D_{x,y} = \sqrt{{(w_x-d_x-x)}^2 + {(w_y - d_y -y)}^2}$  来度量这两者的一致性。当$ D_{x,y} > T_{fg}$时， 将该超像素判为前景，反之为背景。 其中$T_{fg}$ 固定设为2.0。
+
 \section{实验结果与分析}
 \label{ch5:sec:results}
- 通过GPU和CPU的混合编程, 使用C++语言,借助CUDA和OpenCV实现了本文的算法, 其中, 在GPU上实现了文献[15]中的超像素分割算法, 利用OpenCV提供的GPU实现完成KLT特征点跟踪. 实验中计算机配置为Intel i7 3.5 GHz CPU, NVIDIA Ge-Force Titan GPU. 为了测试算法的有效性, 我们在Hopkins视频数据库中测试了本文算法, 该数据库中的视频包含各种复杂相机运动, 是移动相机背景减除研究中较为常用的测试数据集. 在实验中, 超像素大小约为1 600像素, 在估算相机运动时将图像平均分为8×8 共64个单元的网格, 本文对所有测试视频保持同样的参数.
-将本文算法与文献[8,10]中的算法进行了比较, 部分结果如图5所示. 图5a中分别为Hopkins视频
+ 通过GPU和CPU的混合编程， 使用C++语言，借助CUDA和OpenCV实现了本文的算法。 其中， 在GPU 上实现了文献~\cite{superpixel}中的超像素分割算法，利用OpenCV提供的GPU实现完成KLT~\cite{KLT}特征点跟踪。 实验中计算机配置为Intel i7 3.5 GHz CPU， NVIDIA GeForce Titan GPU。 为了测试算法的有效性， 在Hopkins视频数据库~\cite{HopKinsDataSet}中测试了本文算法。 该数据库中的视频包含各种复杂相机运动，是移动相机背景减除研究中较为常用的测试数据集。在实验中， 超像素大小约为1600像素， 在估算相机运动时将图像平均分为$8 \times 8$ 共64个单元的网格， 本文对所有测试视频保持同样的参数。\par
+将本文算法与文献~\inlinecite{5.8s,kwak2011Generalized}中的算法进行了比较，部分结果如图~\ref{ch5:fig:comparison}所示。
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{ch5/fig5a.png}\\
+  (a) 输入图像\\
+   \includegraphics[width=0.9\textwidth]{ch5/fig5b.png}\\
+   (b) 前景正确结果\\
+   \includegraphics[width=0.9\textwidth]{ch5/fig5c.png}\\
+   (c) 文献~\inlinecite{kwak2011Generalized}算法处理结果\\
+   \includegraphics[width=0.9\textwidth]{ch5/fig5d.png}\\
+   (c) 文献~\inlinecite{5.8s}算法处理结果\\
+   \includegraphics[width=0.9\textwidth]{ch5/fig5e.png}\\
+   (c) 本章算法处理结果\\
+  \caption{算法前景检测结果及比较}\label{ch5:fig:comparison}
+\end{figure}
 
 
+图~\ref{ch5:fig:comparison}(a)中分别为Hopkins视频数据库中Cars1视频的第6帧， Cars3视频的第11帧，Cars8视频的第16帧， People1视频的第19帧和Peopel2视频的第16帧。 图~\ref{ch5:fig:comparison}(b)所示为图~\ref{ch5:fig:comparison}(a)中视频帧的正确前景结果， 图~\ref{ch5:fig:comparison}(c)所示为文献~\inlinecite{kwak2011Generalized}算法的结果， 图~\ref{ch5:fig:comparison}(d)所示为文献~\inlinecite{5.8s}算法结果，  图~\ref{ch5:fig:comparison}(e)所示为本章算法结果。 本章采用通用的前景准确度指标，精度P, 召回率R和F值(F-Score, F)来量化评价算法的前景检测准确度。 本文算法与同类实时算法~\cite{5.8s}的部分结果如表~\ref{ch5:tab:comparison}所示。
 
-a. 输入图像
+\begin{table}[htb]
 
-b. 前景正确结果
+% table caption is above the table
+\caption{算法准确度比较，最好的结果用粗体表示}
+\label{ch5:tab:comparison}       % Give a unique label
+% For LaTeX tables use
+\centering
+\begin{tabular}{ccccccc} \toprule[1.5pt]
+\multicolumn{1}{c}{\multirow {2}{*}{}}&\multicolumn{3}{c}{本章算法}& \multicolumn{3}{c}{\inlinecite{5.8s}算法}\\
+\cline{2-7}
+\multicolumn{1}{c}{}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}&\multicolumn{1}{c}{P}&\multicolumn{1}{c}{R}&\multicolumn{1}{c}{F}\\
+\hline
 
-c. 文献[8]算法处理结果
+\multicolumn{1}{c}{cars1}&\multicolumn{1}{c}{\textbf{0.653}}&\multicolumn{1}{c}{\textbf{0.979}}&\multicolumn{1}{c}{\textbf{0.783}}&\multicolumn{1}{c}{0.640}&\multicolumn{1}{c}{0.336}&\multicolumn{1}{c}{0.441}\\
+\multicolumn{1}{c}{cars2}&\multicolumn{1}{c}{\textbf{0.727}}&\multicolumn{1}{c}{\textbf{0.706}}&\multicolumn{1}{c}{\textbf{0.716}}&\multicolumn{1}{c}{0.399}&\multicolumn{1}{c}{0.908}&\multicolumn{1}{c}{0.789}\\
+\multicolumn{1}{c}{cars3}&\multicolumn{1}{c}{\textbf{0.742}}&\multicolumn{1}{c}{\textbf{0.877}}&\multicolumn{1}{c}{\textbf{0.804}}&\multicolumn{1}{c}{0.640}&\multicolumn{1}{c}{0.956}&\multicolumn{1}{c}{0.882}\\
+\multicolumn{1}{c}{cars4}&\multicolumn{1}{c}{\textbf{0.694}}&\multicolumn{1}{c}{\textbf{0.627}}&\multicolumn{1}{c}{\textbf{0.658}}&\multicolumn{1}{c}{0.676}&\multicolumn{1}{c}{0.917}&\multicolumn{1}{c}{0.895}\\
+\multicolumn{1}{c}{cars5}&\multicolumn{1}{c}{{0.686}}&\multicolumn{1}{c}{\textbf{0.720}}&\multicolumn{1}{c}{0.845}&\multicolumn{1}{c}{\textbf{0.703}}&\multicolumn{1}{c}{\textbf{0.724}}&\multicolumn{1}{c}{\textbf{0.874}}\\
+\multicolumn{1}{c}{cars6}&\multicolumn{1}{c}{0.620}&\multicolumn{1}{c}{\textbf{0.682}}&\multicolumn{1}{c}{\textbf{0.650}}&\multicolumn{1}{c}{\textbf{0.726}}&\multicolumn{1}{c}{0.726}&\multicolumn{1}{c}{0.903}\\
+\multicolumn{1}{c}{cars7}&\multicolumn{1}{c}{\textbf{0.687}}&\multicolumn{1}{c}{\textbf{0.957}}&\multicolumn{1}{c}{\textbf{0.800}}&\multicolumn{1}{c}{{0.657}}&\multicolumn{1}{c}{0.950}&\multicolumn{1}{c}{\textbf{0.869}}\\
+\multicolumn{1}{c}{cars8}&\multicolumn{1}{c}{\textbf{0.692}}&\multicolumn{1}{c}{\textbf{0.975}}&\multicolumn{1}{c}{\textbf{0.810}}&\multicolumn{1}{c}{0.653}&\multicolumn{1}{c}{0.944}&\multicolumn{1}{c}{0.826}\\
+\multicolumn{1}{c}{people1}&\multicolumn{1}{c}{{0.486}}&\multicolumn{1}{c}{\textbf{0.861}}&\multicolumn{1}{c}{\textbf{0.621}}&\multicolumn{1}{c}{\textbf{0.887}}&\multicolumn{1}{c}{0.816}&\multicolumn{1}{c}{0.866}\\
+\multicolumn{1}{c}{people2}&\multicolumn{1}{c}{\textbf{0.732}}&\multicolumn{1}{c}{\textbf{0.866}}&\multicolumn{1}{c}{\textbf{0.794}}&\multicolumn{1}{c}{0.834}&\multicolumn{1}{c}{0.602}&\multicolumn{1}{c}{0.699}\\
+\hline
+\multicolumn{1}{c}{平均}&\multicolumn{1}{c}{\textbf{0.680}}&\multicolumn{1}{c}{\textbf{0.829}}&\multicolumn{1}{c}{\textbf{0.747}}&\multicolumn{1}{c}{0.664}&\multicolumn{1}{c}{0.300}&\multicolumn{1}{c}{0.414}\\
+\bottomrule[1.5pt]
 
-d. 文献[10]算法处理结果
+\end{tabular}
 
-e. 本文算法处理结果
-图5  算法前景检测结果及比较
+\end{table}
 
-数据库中Cars1视频的第6帧, Cars3视频的第11帧, Cars8视频的第16帧, People1视频的第19帧和Peopel2视频的第16帧. 图5b所示为5a中视频帧的正确前景结果, 图5c所示为文献[8]算法的结果, 图5d所示为文献[10]算法, 图5e所示为本文算法结果. 本文采用通用的前景准确度指标[9]: 精度P, 召回率R和F值(F-score, F)来量化评价算法的准确度, 本文算法与同类实时算法[10]的部分结果如表1所示. 为了实现实时处理, 本文使用了基于超像素的快速区域分割预处理算法, 通过比较可以看出, 在大多数情况下本文算法能有效的检测视频中的前景部分, 而文献[10]的算法在很多情况下得不到满意的结果.
-本文算法处理大小为640×480像素的视频的平均速度约为28帧/s, 可以满足实时处理的需要; 文献[10]算法处理同样大小的视频速度要快于本文算法, 约为45帧/s, 但其前景检测准确度较低, 在相机运动幅度较大时算法无法有效工作. 综合前景检测准确度和处理速度, 本文算法更适合实时的实际应用.
+ 为了实现实时处理， 本文使用了基于超像素的快速区域分割预处理算法，从图~\ref{ch5:fig:comparison}和表~\ref{ch5:tab:comparison}中通过比较可以看出， 在大多数情况下本文算法能有效的检测视频中的前景部分， 而文献\inlinecite{5.8s}的算法在很多情况下得不到满意的结果。\par
+本文算法处理大小为$640 \times 480$像素的视频的平均速度约为28帧/秒， 可以满足实时处理的需要； 文献~\inlinecite{5.8s}算法处理同样大小的视频速度要快于本文算法， 约为45帧/秒， 但其前景检测准确度较低， 在相机运动幅度较大时算法无法有效工作。 综合考虑前景检测准确度和处理速度，本文算法更适合实时的实际应用。
 
 
 \section{本章小结}
 \label{ch5:sec:conclusions}
-本文提出了一种针对移动相机的实时背景减除算法. 不同于已有的算法, 本文算法不需要计算稠密光流或点轨迹, 也不需要建立并更新背景模型. 根据背景的连续性特点, 通过基于超像素的区域增长算法进行预处理, 先将较为明显的背景去除, 随后根据基于相对光流和分块估计的算法利用匹配特征点估算相机的运动, 对可能的前景超像素进行验证, 比较其光流和相机运动的一致性, 最终获得前景结果. 本文算法简单直接, 能实现实时处理, 大量的实验证明了其有效性, 特别是室外拍摄的背景连续性较强的视频. 相比于同类实时算法, 本文算法的前景检测准确率更高; 而与基于稠密光流或点轨迹的算法相比, 本文算法的处理速度有明显优势.
-因为本文算法是建立在前景占视频中较小的部分的假设的, 因此无法处理视频中前景占据主要部分, 或者匹配的特征点集中在前景的情况. 此外, 本文算法不适合处理背景连续性较差的视频, 如室内拍摄视频或包含复杂背景的视频, 针对这些视频, 本文的区域分割算法可能会失效. 在未来的工作中, 我们将考虑解决上述问题, 并在保持算法实时性的前提下, 进一步提高算法的前景检测准确度.
+随着移动设备计算能力的不断提高，目前智能手机、平板电脑等移动计算平台的计算能力越来越强，已经达到甚至超越了传统桌面个人电脑的计算能力。这使得在移动计算平台上可以实现一些计算密集型任务，例如实时的图像和视频处理任务。视频背景减除技术应用范围广，不仅常用于视频编辑等离线应用，也经常用于实时监控等实时任务。当拍摄视频的摄像机为移动相机时，实现实时的视频背景减除是较困难的一项任务。准确提取移动相机拍摄视频中的前景对象本身就是一项困难的工作，其中包含估算相机运动，背景建模等计算密集型步骤，而在此基础上实现实时处理则更加困难。目前能实时完成移动相机视频背景减除计算的算法较少。为了实现实时处理，文献~\inlinecite{5.8s}为了实现实时处理，对输入图像进行了分块处理，为每个分块建立一个双模式的高斯模型。虽然文献~\inlinecite{5.8s}的速度非常快，但是该算法的前景检测准确度却较差。\par
+本章提出了一种针对移动相机的实时背景减除算法。 不同于已有的算法， 本章算法不需要计算稠密光流或点轨迹， 也不需要建立并更新背景模型。 根据背景的连续性特点， 通过基于超像素的区域增长算法进行预处理， 先将较为明显的背景去除。随后根据基于相对光流和分块估计的算法利用匹配特征点估算相机的运动，对可能的前景超像素进行验证， 比较其光流和相机运动的一致性，获得最终的前景结果。本章算法简单直接， 借助GPU能实现实时处。大量的实验证明了其有效性, 特别是室外拍摄的背景连续性较强的视频. 相比于同类实时算法, 本文算法的前景检测准确率更高; 而与基于稠密光流或点轨迹的算法相比, 本文算法的处理速度有明显优势。\par
+因为本文算法是建立在前景占视频中较小的部分的假设的， 因此无法处理视频中前景占据主要部分，或者匹配的特征点集中在前景的情况。 此外， 本文算法不适合处理背景连续性较差的视频， 如室内拍摄视频或包含复杂背景的视频。 针对这些视频, 本章的区域分割算法可能会失效。 在未来的工作中, 我们将考虑解决上述问题，并在保持算法实时性的前提下 进一步提高算法的前景检测准确度。

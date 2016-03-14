@@ -442,7 +442,7 @@ $$NCC=\frac{\sum_{x,y}\left( I_{x,y}-\bar J_{x,y}\right )\left(J_{x,y}- \bar I_{
 \end{figure}
 
 
- 在表~\ref{ch4:tab:resultPTZ}中列出了本章算法的到的平均结果以及与其他领先的算法比较的结果。通过比较，在本文完成时本章算法在CD.Net 2014数据集\cite{CD2014} 的PTZ 类别中综合排名第一\footnote{见 http://wordpress-jodoin.dmi.usherb.ca/results2014/412/}。该综合排名是计算算法在7项指标中的综合排名得到的。这7项指标除了~\ref{ch4:sec:sub:test1}节中使用的精度(P)、召回率(R)、F-Score(F)之外，还包括敏感度(specificity, Sp)、错误前景率(false positive rate, FPR)、错误背景率(false negative rate, FNR)以及错误分类百分比(Percentage of Wrong Classifications, PWC)，这些指标的定义为:
+ 在表~\ref{ch4:tab:resultPTZ}中列出了本章算法的到的平均结果以及与其他领先的算法比较的结果。通过比较，在本文完成时本章算法在CD.Net 2014数据集\cite{CD2014} 的PTZ 类别中综合排名第一\footnote{见 http://wordpress-jodoin.dmi.usherb.ca/results2014/412/}。该综合排名是计算算法在7 项指标中的综合排名得到的。这7项指标除了~\ref{ch4:sec:sub:test1}节中使用的精度(P)、召回率(R)、F-Score(F)之外，还包括敏感度(specificity, Sp)、错误前景率(false positive rate, FPR)、错误背景率(false negative rate, FNR)以及错误分类百分比(Percentage of Wrong Classifications, PWC)，这些指标的定义为:
  $$ Sp = \frac{TN}{(TN + FP)},FPR = \frac{FP}{(FP+TN)}, FNR = \frac{FN}{(TP+FN)} $$
  $$ PWC = 100 \times \frac{(FN+FP)}{(TP+FN+FP+TN)} $$
  其中FPR、FNR、PWC均表示错误概率，值越小表示算法越好，其他指标均越大越好。
