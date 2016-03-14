@@ -1,6 +1,6 @@
 \chapter{针对移动相机的快速视频背景减除技术}
  \label{ch4:FMCBS}
- 本章对移动相机情况下的视频背景减除技术进行了研究，提出了一种针对移动相机的基于无参数模型的快速视频背景减除算法。该算法主要利用两方面的线索得到视频中准确的前景对象。首先引入最相似变换(as-similar-as-possible warping, ASAPW)方法对相机的运动进行估算和补偿，利用无参数的采样背景模型进行背景建模，利用背景模型这一前景外观线索获得粗略的前景结果。与目前已有的其他方法不同的是，本章所提出的算法不需要计算稠密光流或像素点轨迹等预处理过程，而是通过本章提出的基于超像素的区域增长算法(superpixel-based seeded region growing, SSRG) 将基于稀疏光流的前景线索扩散到整幅图像范围，获得另外一个基于运动线索的粗略前景结果。最后通过基于超像素的马尔可夫随机场(Markov random field, MRF)优化过程对两种线索得到的粗略结果进行优化，最终获得准确的前景。大量实验证明了本章所提出算法的有效性，与目前领先的算法相比本章算法可以得到与之相近的前景准确度；但在计算速度方面，本章所提出的算法要快得多。
+ 本章对移动相机情况下的视频背景减除技术进行了研究，提出了一种针对移动相机的基于无参数模型的快速视频背景减除算法。该算法主要利用两方面的线索得到视频中准确的前景对象。首先引入最相似变换(as-similar-as-possible warping, ASAPW)方法对相机的运动进行估算和补偿，利用无参数的采样背景模型进行背景建模，利用背景模型这一前景外观线索获得粗略的前景结果。与目前已有的其他方法不同的是，本章所提出的算法不需要计算稠密光流或像素点轨迹等预处理过程，而是通过本章提出的基于超像素种子点的区域增长算法(superpixel-based seeded region growing, SSRG) 将基于稀疏光流的前景线索扩散到整幅图像范围，获得另外一个基于运动线索的粗略前景结果。最后通过基于超像素的马尔可夫随机场(Markov random field, MRF)优化过程对两种线索得到的粗略结果进行优化，最终获得准确的前景。大量实验证明了本章所提出算法的有效性，与目前领先的算法相比本章算法可以得到与之相近的前景准确度；但在计算速度方面，本章所提出的算法要快得多。
 
  \section{研究背景}
  \label{ch4:sec:background}
@@ -103,13 +103,13 @@ $${E}_{d}(\hat{V}) = \sum_{p \notin h}{\parallel\hat{V}_{p}{w}_{p}- \hat{p}\para
 为了选择合适的权重因子$\alpha$，文献~\inlinecite{Liu_2013ASAP}中将$\alpha$ 均匀分为十个0.3至3之间的离散候选值。计算这十个候选值的变形误差，最终选择变形误差最小的值作为权重因子。该方法需要重复计算图像的变形误差，效率较低。本章算法对其进行了改进，通过自适应调整的方式来设置每个网格内的权重因子，通过网格$c \in h$内的变形误差$e_{c} = {\parallel H_{c}p_{c} - \hat{p_{c}} \parallel}^2 $，设置权重因子值为：
  $$ \alpha_{c\in h} = s_{1}\exp({e_{c}/avgErr})+ s_{2} $$
  其中$s_{1}$ 为常数固定值0.15， $avgErr$ 为$h$的平均变形误差, $s_{2}$ 为截断因子使得 $\alpha_{h} \in [0.3,3.0]$。对于那些特征点数小于10的网格，其权重因子设定为固定值， $\alpha_{c \notin h} = 1.0$。通过这种方式，使得那些变形误差较小的网格的数据项获得更大的权重，而那些误差大或者不包含特征点的纹理平滑区域则更多依靠相似变换来保证变形的准确度。
-\subsection{基于超像素的区域增长算法}
+\subsection{基于超像素种子点的区域增长算法}
 \label{ch4:sec:sub:ssrg}
 由于准确的图像逐像素稠密光流的计算量非常大，本章算法提出通过基于KLT算法~\cite{KLT}的稀疏光流以及超像素区域增长算法(SSRG)来得到前景的粗略分割结果。由于像素级的相机运动已经通过~\ref{ch4:sec:sub:asap}中介绍的ASAPW得到，因此可以计算每个超像素内像素的平均运动得到超像素级的相机运动估算结果。将此相机运动与基于超像素的光流进行比较，可以得到前景线索。在理想情况下，由于背景区域像素的运动是由于相机运动产生的，因此其光流应该与相机运动一致。如果某超像素的光流与相机运动的差距小于某阈值，在本章算法中使用较小的阈值0.4，那么该超像素被标记为背景种子点。利用图像像素在空间分布和颜色空间的相关性，相邻及相似的像素同属于背景或同属于前景的几率较大，本章提出利用SSRG算法将稀疏的背景种子点扩散到整幅图像，见算法~\ref{ch4:alg:ssrg}。本章提出的SSRG算法与文献~\inlinecite{seededRegionGrowing}相似，但是主要有以下两个区别: (1) 本章所提出的SSRG算法与文献~\inlinecite{seededRegionGrowing}的目的不同，前者目的是将图像分割为前景区域和背景区域两个部分，而后者则是将图像分为多个齐次区域；(2)本章提出的SSRG算法基于超像素，在效率上比文献~\inlinecite{seededRegionGrowing}中基于像素的算法更具优势。
 
 \renewcommand{\algorithmcfname}{算法}
 \begin{algorithm}
-\caption{基于超像素的区域增长算法}
+\caption{基于超像素种子点的区域增长算法}
 \label{ch4:alg:ssrg}
 \LinesNumbered
 \KwData {图像 $I$ 的超像素$superpxiels$ , 背景种子点集合 $seeds$, 区域增长门限$threshold_{rg}$ }
@@ -394,27 +394,27 @@ $$F = \frac{2 \times P \times R}{(P + R)}$$
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/gt002272.png}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/gt001515.png}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/gt000505.png}\\
-  (c) 正确结果\\
+  (b) 正确结果\\
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_ours.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_ours.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_ours.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_ours.jpg}\\
-  (d)本章算法结果\\
+  (c)本章算法结果\\
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_subsense.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_subsense.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_subsense.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_subsense.jpg}\\
-  (e)文献~\inlinecite{subsenseTIP}算法结果\\
+  (d)文献~\inlinecite{subsenseTIP}算法结果\\
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_pawcs.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_pawcs.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_pawcs.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_pawcs.jpg}\\
-  (f)文献~\inlinecite{Stcharles2015A}算法结果\\
+  (e)文献~\inlinecite{Stcharles2015A}算法结果\\
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_sharedmodel.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_sharedmodel.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_sharedmodel.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000505_sharedmodel.jpg}\\
-  (g)文献~\inlinecite{Chen2015Learning}算法结果\\
+  (f)文献~\inlinecite{Chen2015Learning}算法结果\\
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/000852_cwisardh.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/002272_cwisardh.jpg}
   \includegraphics[width=0.22\textwidth,height=0.8in]{ch4/ptz/001515_cwisardh.jpg}
@@ -495,11 +495,28 @@ $$NCC=\frac{\sum_{x,y}\left( I_{x,y}-\bar J_{x,y}\right )\left(J_{x,y}- \bar I_{
 %\end{table}
 
 
-为了测试本章算法的可扩展性，将本章算法的参数进行调整后在CD.Net 2014数据库中的静态相机情况下动态背景类视频(boats，canoe)中两个较困难的视频上进行了测试。由于测试视频中摄像机是固定的，因此在本章所用的背景模型中以文献~\inlinecite{subsenseTIP}中定义的更新机制对背景模型进行更新。另外，由于相机是静止的，这时本章算法的运动线索无效，只用基于外观模型的线索来处理静态相机视频。在表~\ref{ch4:tab:resultsDB}中列出了本章算法的结果以及同其他基于采样模型的算法的比较。由于文献~\inlinecite{Chien2002Efficient}中的算法只有一张图像类背景建模，使得改算法无法有效处理包含动态背景的视频。从表~\ref{ch4:tab:resultsDB}中可以看出，本章所提出的算法得到的精度指标F-Score好于原来的SuBSENSE算法\cite{subsenseTIP}，这主要得益于本章算法的MRF优化算法。
+为了测试本章算法的可扩展性，将本章算法的参数进行调整后在CD.Net 2014数据库中的静态相机情况下动态背景类中两个较困难的视频(boats，canoe)上进行了测试。由于测试视频中摄像机是固定的，这时本章算法的运动线索无效，因此在此实验中所用的背景模型中以文献~\inlinecite{subsenseTIP}中定义的更新机制对背景模型进行更新，只用基于外观模型的线索来处理静态相机视频。本章算法得到的部分结果以及和其他算法的比较情况如图~\ref{ch4:fig:dbresults}所示，其中图~\ref{ch4:fig:dbresults}(a)和(f)中为输入视频的一帧图像，从图中看出图像中包含的水面部分的波纹和浪花属于动态背景。从图~\ref{ch4:fig:dbresults}中的处理结果可以看到，本章算法和其他基于采样模型的算法\cite{pbas,subsenseTIP}均能较好的处理动态背景，没有将水面部分误识别为前景，此外本章算法得到的前景准确度要优于文献~\inlinecite{subsenseTIP}算法得到的结果。在表~\ref{ch4:tab:resultsDB}中列出了本章算法的结果以及同其他基于采样模型的算法的比较。由于文献~\inlinecite{Chien2002Efficient}中的算法只有一张图像类背景建模，使得改算法无法有效处理包含动态背景的视频。各算法得到前景结果的定量分析和比较如表~\ref{ch4:tab:resultsDB}所示。从表~\ref{ch4:tab:resultsDB}中可以看出，本章所提出的算法得到的精度指标F-Score好于原来的SuBSENSE算法\cite{subsenseTIP}，这主要得益于本章算法的MRF优化算法。
+\begin{figure}
+  \centering
+  % Requires \usepackage{graphicx}
+  \includegraphics[width=0.19\textwidth]{ch4/db/boat.jpg}
+  \includegraphics[width=0.19\textwidth]{ch4/db/boat_gt.jpg}
+  \includegraphics[width=0.19\textwidth]{ch4/db/boat_MCBS.jpg}
+  \includegraphics[width=0.19\textwidth]{ch4/db/boat_pbas_23.jpg}
+  \includegraphics[width=0.19\textwidth]{ch4/db/boat_Pierre_LucSt_CharlesJul2014_139.jpg}\\
+  (a)boats视频帧(b)正确结果(c)本章算法结果(d)~\inlinecite{pbas}算法结果(e)\inlinecite{subsenseTIP}算法结果 \\
+  \includegraphics[width=0.19\textwidth]{ch4/db/canoe.jpg}
+  \includegraphics[width=0.19\textwidth]{ch4/db/canoe_gt.png}
+  \includegraphics[width=0.19\textwidth]{ch4/db/canoe_MCBS.jpg}
+  \includegraphics[width=0.19\textwidth]{ch4/db/canoe_pbas_23.jpg}
+  \includegraphics[width=0.19\textwidth]{ch4/db/canoe_Pierre_LucSt_CharlesJul2014_139.jpg}\\
+  (f)canoe视频帧(g)正确结果(h)本章算法结果(i)~\inlinecite{pbas}算法结果(j)\inlinecite{subsenseTIP}算法结果 \\
+  \caption{CD.Net 2014 数据集动态背景分类中的 boats 和 canoe视频处理结果对比}\label{ch4:fig:dbresults}
+\end{figure}
 
 
  \begin{table}[ht]
-\caption{CD.Net 2014 数据集中的 ``boats'' 和 ``canoe''视频处理结果比较}
+\caption{CD.Net 2014 数据集动态背景分类的 boats 和 canoe视频处理结果精度比较}
 \label{ch4:tab:resultsDB}
 \begin{center}
 \begin{tabular}{cccccccc} %% this creates two columns
