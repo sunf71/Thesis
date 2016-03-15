@@ -43,7 +43,7 @@ Barnich等人提出了一种基于无参数采样一致模型的背景减除算�
 
 另一类针对移动相机的视频背景减除算法依靠像素点轨迹信息来估算视频中的前景。文献~\inlinecite{iccv2009}提出了一种基于滑动窗口的像素点轨迹矩阵分解的算法。该算法使用RANSAC\cite{Ransac}算法估计背景像素点轨迹。文献~\inlinecite{Cui2012}提出一种将点轨迹矩阵分解为低秩部分（背景）和群稀疏部分（前景）。文献~\inlinecite{SubspaceTracking}提出一种基于像素点轨迹的在线背景建模方法，该方法通过跟踪描述背景运动的线性子空间建立背景模型。 在效率方面，文献~\inlinecite{SubspaceTracking}中算法需要1.8秒左右时间处理Hopkins数据集\cite{HopKinsDataSet} 中的一帧图像。\par
 
-与上述方法不同，Yilmaz等人~\cite{contourTracking04}提出了一种基于轮廓(contour)的移动相机拍摄视频前景跟踪方法。通过主动轮廓模型(active contours)\cite{Snakes}可以对视频和图像中的前景进行跟踪。主动轮廓模型的目标是获得紧密包围对象的轮廓，一般通过能量最小化的方式实现。文献~inlinecite{contourTracking04}将能量函数定义为：
+与上述方法不同，Yilmaz等人~\cite{contourTracking04}提出了一种基于轮廓(contour)的移动相机拍摄视频前景跟踪方法。通过主动轮廓模型(active contours)\cite{Snakes}可以对视频和图像中的前景进行跟踪。主动轮廓模型的目标是获得紧密包围对象的轮廓，一般通过能量最小化的方式实现。文献~\inlinecite{contourTracking04}将能量函数定义为：
 $$ E(\Gamma) = \int_{0}^{1} E_{image}(\mathbf{v})+ E_{shape}(\mathbf{v}) ds,$$
 其中，$E_image$为根据图像本身的颜色和纹理分布，$E_shape$则基于轮廓跟踪的历史数据，保证在前景被遮挡的情况下保持对象的形状。该算法可以在不需要估算相机运动的情况下对移动相机拍摄视频中的前景对象进行可靠跟踪，而且能处理前景被遮挡的情况。但是由于是基于轮廓跟踪的方法，容易受到背景区域中边缘等结构信息的感人。此外基于变分的方法求解时需要多次迭代，造成算法比较耗时。
 
