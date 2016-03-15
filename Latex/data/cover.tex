@@ -65,7 +65,14 @@
 
 % 定义中英文摘要和关键字
 \begin{cabstract}
+根据人类视觉系统的特点，我们在观察图像时只会对图像局部某些前景对象感兴趣。背景减除技术是指将视频图像中的背景部分去除，从而将感兴趣的前景对象和背景区域分离的一种技术。该技术被广泛应用于视频监控、视频/图像编辑、目标跟踪等领域，是理解和分析图像的重要预处理步骤之一。本论文围绕图像和视频中的背景减除技术这一主题开展研究，主要贡献和创新点总结如下：
+\begin{enumerate}
+  \item 提出了一种基于区域合并的图像显著性区域检测算法。该算法以区域合并的方式逐渐将图像由初始状态下的多个区域合并为包含显著性对象和背景的两个区域。根据在合并过程中得到的多个候选显著性区域，以加权平均的方式得到最终的显著性结果。实验证明该算法的效率及前景检测准确度均较高，在主要由自然图像组成的ECSSD数据集中得到的准确度和错误率指标优于其他同类算法；
 
+  \item 提出了一种基于样本的两阶段快速图像填充算法。首先，利用基于样本的填充算法对低分辨率图像和原始图像进行同步填充；然后针对第一步填充结果中存在的问题进行第二阶段填充。在最匹配块的搜索过程中，提出分块结构相似性测试和动态搜索窗口等技术以加快搜索速度。实验结果证明该算法填充结果结构连续性较好，且在速度上相比同类算法有了较大提高；
+  \item 提出了一种针对移动相机的快速背景减除算法。一方面通过改进的背景模型获取基于外观线索的粗略前景结果；另一方面，根据稀疏光流和相机运动的一致性情况得到稀疏的背景种子点，通过种子点区域增长获取基于运动线索的粗略结果；最后根据上述两个粗略分割结果以及前一帧图像的前景结果，通过MRF优化获得最终结果。实验结果表明，该算法的前景提取准确度达到了当前先进算法的水平，且在计算速度方面优于同类算法。
+  \item 提出了一种针对移动相机的实时背景减除算法。该算法首先利用基于超像素的区域增长预处理方法进行预处理，得到疑似前景区域；然后通过基于相对光流的特征点筛选方法得到来自于背景的特征点，并以分块的方式估算各分块内的相机运动；最后通过验证疑似前景对象的光流与相机运动的一致性得到最终的前景检测结果。实验证明该算法能实时处理分辨率为$640 \times 480$的视频，且前景检测准确率高于同类实时算法。
+\end{enumerate}
 
 \end{cabstract}
 
@@ -73,23 +80,15 @@
 % \ckeywords{\TeX, \LaTeX, CJK, 模板, 论文}
 
 \begin{eabstract}
-   An abstract of a dissertation is a summary and extraction of research work
-   and contributions. Included in an abstract should be description of research
-   topic and research objective, brief introduction to methodology and research
-   process, and summarization of conclusion and contributions of the
-   research. An abstract should be characterized by independence and clarity and
-   carry identical information with the dissertation. It should be such that the
-   general idea and major contributions of the dissertation are conveyed without
-   reading the dissertation.
+   According to the characristics of the human visual system, we only focus on some foreground objects when we see a picture. Background subtraction, aims at removing the background region from an image or a video, so as to seperate the intrested fourground objects and the background region. It has been widely used in many applications, such as video survelience， video/image edting, object tracking, etc. And it is an important preprocessing step in image  understanding and analysis applications. This dissertation focuses on the the background subtraction techniques on images and videos, the main contrubutions are summerized as follows:
+   \begin{enumerate}
+   \item We propose a image saliency detection algorithm based on region merging. Firstly, the input image is over-segmented into many small regions via superpixel algorithm. Then these regions are gradually merged together, untill only two regions are remaning, the foreground region and the salient region. The final salient region is obtained via a weighted average of many proposals obtained during the region merging process. Experimental results show that, the proposed algorithm achives plausible results. Particulaly, in the challenging dataset ECSSD, the proposed algorhim outperforms other region-based state-of-the-art algorithms;
+   \item We propose a examplar-based two-step image inpainting algorithm. The aim of image inpainting is to recover the missing area of an image. In this case, the missing area can be viewed as the ``background region''  that need to be subtracted. In the first inpainting, the input image is inpainted synchronizely with its coarse version via examplar-based inpainting. The inpaintd image is plausible except some artifects exsit in the areas contain edges. Then the second inpainting is employed only on these areas. In the searching of the best-match patches, patch structrual distance and dynamic search window techniqes are proposed to improve the searching speed. Experimental results show that the inpainted image obtained by the proposed algorithm can effectively recover the structural continuity of the input image, and its processing speed is much faster than competing algorithms;
+   \item We propose a fast background subtraction algorithm for moving cameras. On one hand, the improved sample-based background models is employed to get a raw foreground segmentation; on the other hand, according to the accordance of the sparse optical flow and the estimated camera motion based on as-similar-as-possible warping, some background seeds are obtained. These seeds are extended to the entire image via the proposed region growing algorithm. In this way, another raw foreground result is obtained via motion cue. Based on these two raw results and the result of the previous frame, a MRF optimization framework is built, and the final result can be obtained via the graph-cut algorithm. Experimental results show that the proposed algorithm achieves state-of-the-art accuracy and is much faster than competing algorithms.
+   
+   \item We propose a real-time background subtraction algorithm for moving cameras. Firstly, a superpixel-based region growing algorithm is proposed to preprocess the input image frame. Then, the camera motion is estimated in a block-based fashion with the relative-flow-based background feature points filtering method. Finally, the final result is obtained via a verification process based on the accordance of the optical flow and the camera motion. Experiments show that the proposed algorithm can process a $640 \times 480$ size video in real-time. In addition, its the foreground detection accuracy outperforms other real-time methods.
+   \end{enumerate}
 
-   An abstract should be concise and to the point. It is a misunderstanding to
-   make an abstract an outline of the dissertation and words ``the first
-   chapter'', ``the second chapter'' and the like should be avoided in the
-   abstract.
-
-   Key words are terms used in a dissertation for indexing, reflecting core
-   information of the dissertation. An abstract may contain a maximum of 5 key
-   words, with semi-colons used in between to separate one another.
 \end{eabstract}
 
 % \ekeywords{\TeX, \LaTeX, CJK, template, thesis}
