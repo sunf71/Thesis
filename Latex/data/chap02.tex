@@ -266,7 +266,7 @@ $$ S(I) = \frac{\sum_{i=1}^{P}PropCon(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\s
 \subsection{显著性检测}
 \label{sec:sub:saliencyRst}
 
-为验证本章算法在显著性区域检测中的有效性，将本章所提出的算法 (RM)与AC~\cite{Achanta08}，CSH~\cite{Yan2014Hierarchical}，FT~\cite{saliencyFilter}，GB~\cite{Harel07graph-basedvisual}，GC~\cite{GC}，GMR~\cite{GMR}，IT~\cite{itti}，RC~\cite{ChengPAMI}， SF~\cite{saliencyFilter}，SR~\cite{SR}方法进行了比较。其中RC、GMR、CSH算法和本文算法都属于基于区域的方法。部分结果的比较见图~\ref{fig:chap2:comp1}和图~\ref{fig:chap2:comp2}。通过对比可以看到，本文算法可以处理各种复杂背景的自然图像，例如图~\ref{fig:chap2:comp1}中的第三行以及图~\ref{fig:chap2:comp2}中的第二行，对于这些类型的图像RC等算法无法有效工作。而对于背景部分与前景部分在色彩空间分布较为接近的情况，例如图~\ref{fig:chap2:comp1}中的第二行及图~\ref{fig:chap2:comp2}中的第三行，本文算法的处理结果同样优于基于全局对比度的RC等算法。\par
+为验证本章算法在显著性区域检测中的有效性，将本章所提出的算法 (RM)与AC~\cite{Achanta08}，CHS~\cite{Yan2014Hierarchical}，FT~\cite{saliencyFilter}，GB~\cite{Harel07graph-basedvisual}，GC~\cite{GC}，GMR~\cite{GMR}，IT~\cite{itti}，RC~\cite{ChengPAMI}， SF~\cite{saliencyFilter}，SR~\cite{SR}方法进行了比较。其中RC、GMR、CSH算法和本文算法都属于基于区域的方法。部分结果的比较见图~\ref{fig:chap2:comp1}和图~\ref{fig:chap2:comp2}。通过对比可以看到，本文算法可以处理各种复杂背景的自然图像，例如图~\ref{fig:chap2:comp1}中的第三行以及图~\ref{fig:chap2:comp2}中的第二行，对于这些类型的图像RC等算法无法有效工作。而对于背景部分与前景部分在色彩空间分布较为接近的情况，例如图~\ref{fig:chap2:comp1}中的第二行及图~\ref{fig:chap2:comp2}中的第三行，本文算法的处理结果同样优于基于全局对比度的RC等算法。\par
 \begin{figure}[h]
   \centering%
       {\includegraphics[width=0.9\textwidth]{salcomp1.png}}
@@ -330,7 +330,7 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
   \label{tab:algTime}
     \begin{tabularx}{\linewidth}{lXXXX}
       \toprule[1.5pt]
-      {\heiti 算法} & {\heiti RM} & {\heiti CSH} & {\heiti RC} & {\heiti GMR} \\\midrule[1pt]
+      {\heiti 算法} & {\heiti RM} & {\heiti CHS} & {\heiti RC} & {\heiti GMR} \\\midrule[1pt]
       时间(s) & { 0.084} & 0.362 & 0.091 & 0.097 \\
 
       \bottomrule[1.5pt]
