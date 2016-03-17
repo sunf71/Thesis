@@ -7,7 +7,7 @@
 \label{sec:background}
 图像显著性区域检测是近年来计算机视觉和图像处理领域的研究热点之一~\cite{saliencySurvey}。该技术的目标是快速定位图像中显著性对象，可以广泛应用于目标识别，基于内容的图像编辑以及图像检索等应用中。早期的显著性检测算法~\cite{itti}依据视觉感知理论，采用自底向上方法预测人眼观察图像时的焦点(fixation)，最终得到一系列离散的圆点形状的显著性区域预测结果。然而，这类方法效率和准确度均较低，且无法得到显著性对象的准确边界，实际应用范围受限。随后，为了实现提前显著性对象的准确边界，研究人员提出了一系列数据驱动，自底向上的显著性区域检测算法~\cite{Achanta08,ChengPAMI,ufo,Yan2014Hierarchical}，大大提高了显著性对象检测精度以及计算速度。目前这类算法均可以较为准确的提取自然图像中包含的显著性对象，实现显著性对象与背景的分离。\par
 据文献~\inlinecite{Borji2015Salient}报道，在这些算法中，基于图像区域的算法性能更出色。基于区域的显著性检测算法首先用超像素~\cite{SLIC}、基于图的图像分割算法~\cite{graphseg}等图像分割方法将图像分为若干个小区域，随后以区域为单位进行显著性计算。由于在区域分割时考虑了像素在色彩以及空间域的连续性，分割后的区域内像素具有很好的齐次性，且大部分区域之间的边界与图像边缘吻合。 相比于基于像素的算法, 区域分割处理在保持显著性对象边界的同时，可以利用区域颜色直方图更准确的对区域内的颜色对比度进行量化。另外,以区域为单位计算大大降低了运算量。\par
-当前大部分已有的图像显著性检测算法的出发点均是根据显著性区域的特点，例如对比度高~\cite{ChengPAMI}、处在相机焦点上~\cite{ufo}等，定义区域显著性模型以计算每个像素的显著性水平。然而，自然图像中可能包含各种类型的显著性对象，单纯用这些显著性对象的线索仍然无法处理所有情况。如图~\ref{fig:saliencyCom}所示，(a)为输入图像，(b)、(c)、(d)分别为CSH算法~\cite{Yan2014Hierarchical}、RC算法~\cite{ChengPAMI}，和本章算法的结果，(e)为正确结果。图~\ref{fig:saliencyCom}表明，当输入图像中对象和背景的色彩分布较为接近(图~\ref{fig:saliencyCom}中第一行和第二行)，或者背景复杂度较高(第三行)时RC和CSH算法均无法有效检测出显著性对象。
+当前大部分已有的图像显著性检测算法的出发点均是根据显著性区域的特点，例如对比度高~\cite{ChengPAMI}、处在相机焦点上~\cite{ufo}等，定义区域显著性模型以计算每个像素的显著性水平。然而，自然图像中可能包含各种类型的显著性对象，单纯用这些显著性对象的线索仍然无法处理所有情况。如图~\ref{fig:saliencyCom}所示，(a)为输入图像，(b)、(c)、(d)分别为CHS算法~\cite{Yan2014Hierarchical}、RC算法~\cite{ChengPAMI}，和本章算法的结果，(e)为正确结果。图~\ref{fig:saliencyCom}表明，当输入图像中对象和背景的色彩分布较为接近(图~\ref{fig:saliencyCom}中第一行和第二行)，或者背景复杂度较高(第三行)时RC和CHS算法均无法有效检测出显著性对象。
 \begin{figure}[htb]
   \centering%
       {\includegraphics[width=0.9\textwidth]{ch2/ch02fig1.png}}\\
@@ -27,7 +27,7 @@
 \label{sec:relatedWorks}
 \subsection{图像显著性区域检测}
 \label{sec:SaliencyDetection}
-对比度(contrast)强是显著性对象区别于背景的重要性质，Cheng等人~\cite{ChengPAMI}提出利用全局对比度的方法计算图像中每个颜色的显著性水平。由于色彩空间巨大，为了提高效率，Cheng等人提出量化的方式提取图像中的主要颜色并依据此建立直方图，计算每个颜色的显著性值。为了进一步提高算法的准确的，Cheng等人~\cite{ChengPAMI}提出了一种基于区域对比度的方法，先用基于图的图像分割方法将图像分为若干齐次区域，考虑区域的空间相关性，利用区域对比度来检测显著性区域，得到了比全局对比度更好的效果。Perazzi等人~\cite{saliencyFilter}提出基于高维高斯滤波的显著性滤波算法(saliency filters)。该算法首先对待处理图像进行抽象化，去掉冗余细节信息。随后在CIELab色彩空间中通过局部及全局对比度来计算色彩独特性，利用高维高斯滤波的方式结合色彩的空间分布情况计算最终的显著性检测结果。Jiang等人~\cite{ufo}指出，作为主要目标显著性对象应该在成像时处于相机焦点之上，利用图像中边缘的模糊程度可以对图像区域是否在成像时处于相机的焦点上进行量化，最后综合考虑图像区域对比度、是否在相机焦点上以及区域中包含对象的可能性(objectness)三方面线索计算最终的结果。Li等人~\cite{DSR}提出一种基于重建误差的显著性检测算法， DSR。 该算法首先利用超像素提取图像的边界， 计算每个区域的稠密及稀疏重建误差； 随后利用$K$-means算法对重建误差信息进行聚类, 最后通过多尺度重建误差集成和偏向对象的高斯模型优化得到像素级的显著性结果。 Jiang等人\cite{MC}提出一种基于图像图模型上的吸收马尔可夫链的算法， 该方法结合了显著性对象的独特性和背景区域的空间分布特点等线索， 利用马尔可夫链模型中各节点至边界吸收节点的吸收时间来评估像素的显著性。 为了处理自然图像中的复杂结构，Yan等人~\cite{ECSSD}提出了一种多尺度参差花的显著性区域检测算法，称为CSH。该方法将图像在不同尺度上进行分割，得到多个层次的区域显著性线索，并将这些多层次的线索进行加权得到最终结果。本章所提出的方法与CSH算法有类似之处，均采用了图像区域合并的方法得到多个图像分割结果。但不同之处在于本章提出的区域合并方法在合并过程中的不同阶段使用不同的合并策略，而CSH算法使用同样的分层策略得到固定数量的层次。并且，本章使用背景线索进行区域显著性分析，与上述基于显著性对象线索的算法均不同。\par
+对比度(contrast)强是显著性对象区别于背景的重要性质，Cheng等人~\cite{ChengPAMI}提出利用全局对比度的方法计算图像中每个颜色的显著性水平。由于色彩空间巨大，为了提高效率，Cheng等人提出量化的方式提取图像中的主要颜色并依据此建立直方图，计算每个颜色的显著性值。为了进一步提高算法的准确的，Cheng等人~\cite{ChengPAMI}提出了一种基于区域对比度的方法，先用基于图的图像分割方法将图像分为若干齐次区域，考虑区域的空间相关性，利用区域对比度来检测显著性区域，得到了比全局对比度更好的效果。Perazzi等人~\cite{saliencyFilter}提出基于高维高斯滤波的显著性滤波算法(saliency filters)。该算法首先对待处理图像进行抽象化，去掉冗余细节信息。随后在CIELab色彩空间中通过局部及全局对比度来计算色彩独特性，利用高维高斯滤波的方式结合色彩的空间分布情况计算最终的显著性检测结果。Jiang等人~\cite{ufo}指出，作为主要目标显著性对象应该在成像时处于相机焦点之上，利用图像中边缘的模糊程度可以对图像区域是否在成像时处于相机的焦点上进行量化，最后综合考虑图像区域对比度、是否在相机焦点上以及区域中包含对象的可能性(objectness)三方面线索计算最终的结果。Li等人~\cite{DSR}提出一种基于重建误差的显著性检测算法， DSR。 该算法首先利用超像素提取图像的边界， 计算每个区域的稠密及稀疏重建误差； 随后利用$K$-means算法对重建误差信息进行聚类, 最后通过多尺度重建误差集成和偏向对象的高斯模型优化得到像素级的显著性结果。 Jiang等人\cite{MC}提出一种基于图像图模型上的吸收马尔可夫链的算法， 该方法结合了显著性对象的独特性和背景区域的空间分布特点等线索， 利用马尔可夫链模型中各节点至边界吸收节点的吸收时间来评估像素的显著性。 为了处理自然图像中的复杂结构，Yan等人~\cite{ECSSD}提出了一种多尺度参差花的显著性区域检测算法，称为CHS。该方法将图像在不同尺度上进行分割，得到多个层次的区域显著性线索，并将这些多层次的线索进行加权得到最终结果。本章所提出的方法与CHS算法有类似之处，均采用了图像区域合并的方法得到多个图像分割结果。但不同之处在于本章提出的区域合并方法在合并过程中的不同阶段使用不同的合并策略，而CHS算法使用同样的分层策略得到固定数量的层次。并且，本章使用背景线索进行区域显著性分析，与上述基于显著性对象线索的算法均不同。\par
 Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性检测算法，该方法利用背景部分像素容易连接到图像边界的特点，利用图像区域距离图像边界的测地线距离(geodesic distance)来评估其显著性。文献~\inlinecite{backgroundPrior}中利用了图像边界大部分是背景这一假设，先对图像边界区域进行对比度分析，从中获得背景区域主要颜色的线索；随后利用这一线索利用基于~\inlinecite{ChengPAMI}的算法进行对比度分析获得显著性前景结果。本章算法基于类似的背景线索，但是本章所提算法通过显著性引导的区域合并的方式进行显著性检测，这与文献~\inlinecite{geodesicDistance,backgroundPrior}有较大差别。\par
 与基于区域的算法不同， Wang等人~\cite{PISA}提出一种基于像素的显著性检测算法， PISA。 该算法主要利用图像全局范围内的颜色和结构对比度及其在图像空间域中的分布情况等线索，以滤波的方式将多种线索合成得到图像中每个像素的显著性值。虽然PISA算法的准确度与本章算法较为接近，但是由于PISA是基于像素的算法，本章算法与之相比在速度上有明显优势。
 
@@ -79,7 +79,7 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \item 边缘保持\par
     图像结构化边缘是反映对象边界的重要信息。为了使区域合并过程不破坏对象的边界，在合并优先级中加入边缘保持项，降低区域间的边界包含图像边缘的区域对的优先级。具体其定义为：
     $$P_{e}(i,j)=1-\frac{E(i,j)}{min(borderLen(i),borderLen(j))}$$
-    其中$E(i,j)=\sum_{b\in border(i,j)}Edgeness(b)$,即区域$i$和$j$之间的边界的边缘响应之和, $borderLen(i)$表示区域$i$边界的长度（像素数）。本章算法利用文献~\inlinecite{DollarEdge}所提出的算法计算图像的结构化边缘响应，并将其归一化到$[0,1]$之间。
+    其中$E(i,j)=\sum_{b\in border(i,j)}Edgeness(b)$,即区域$i$和$j$之间的边界的边缘响应之和, $borderLen(i)$表示区域$i$ 边界的长度（像素数）。本章算法利用文献~\inlinecite{DollarEdge}所提出的算法计算图像的结构化边缘响应，并将其归一化到$[0,1]$之间。
 \item 区域空间相关性\par
     区域的空间相关性指区域在空间上的关联性，对于相邻的区域其相关性定义为$$P_{s}(i,j)=borderLen(i,j)/min⁡(border(i),border(j))$$，其中 $borderLen(i,j)$表示区域$i$和$j$之间边界的长度。区域空间相关性的几何意义为若两区域之间的边界占比越大，说明两区域在空间关系上关联更紧密，因此合并优先级更高。极限情况下，当区域$i$ 完全包含$j$时$P_{s} (i,j)=1$。
 \item 区域面积\par
@@ -267,18 +267,18 @@ $$ S(I) = \frac{\sum_{i=1}^{P}PropCon(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\s
 \subsection{显著性检测}
 \label{sec:sub:saliencyRst}
 
-为验证本章算法在显著性区域检测中的有效性，将本章所提出的算法 (RM)与AC~\cite{Achanta08}，CHS~\cite{Yan2014Hierarchical}，FT~\cite{saliencyFilter}，GB~\cite{Harel07graph-basedvisual}，GC~\cite{GC}，GMR~\cite{GMR}，IT~\cite{itti}，RC~\cite{ChengPAMI}， SF~\cite{saliencyFilter}，SR~\cite{SR}方法进行了比较。其中RC、GMR、CSH算法和本文算法都属于基于区域的方法。部分结果的比较见图~\ref{fig:chap2:comp1}和图~\ref{fig:chap2:comp2}。通过对比可以看到，本文算法可以处理各种复杂背景的自然图像，例如图~\ref{fig:chap2:comp1}中的第三行以及图~\ref{fig:chap2:comp2}中的第二行，对于这些类型的图像RC等算法无法有效工作。而对于背景部分与前景部分在色彩空间分布较为接近的情况，例如图~\ref{fig:chap2:comp1}中的第二行及图~\ref{fig:chap2:comp2}中的第三行，本文算法的处理结果同样优于基于全局对比度的RC等算法。\par
+为验证本章算法在显著性区域检测中的有效性，将本章所提出的算法 (RM)与AC~\cite{Achanta08}、CHS~\cite{Yan2014Hierarchical}、FT~\cite{saliencyFilter}、GB~\cite{Harel07graph-basedvisual}、GC~\cite{GC}，GMR~\cite{GMR}，IT~\cite{itti}，RC~\cite{ChengPAMI}， SF~\cite{saliencyFilter}、SR~\cite{SR}、DSR~\cite{DSR}、PISA~\cite{PISA}、MC~\cite{MC}等方法进行了比较。其中RC、GMR、CHS、MC算法和本文算法都属于基于区域的方法。部分结果的比较见图~\ref{fig:chap2:comp1}和图~\ref{fig:chap2:comp2}，由于早期的AC、IT、SR等算法准确度较低，在图~\ref{fig:chap2:comp1}和图~\ref{fig:chap2:comp2}中只列出了效果更好的6种算法的结果通过对比可以看到，本章算法可以处理各种复杂背景的自然图像，例如图~\ref{fig:chap2:comp1}中的第三行以及图~\ref{fig:chap2:comp2}中的第二行，对于这些类型的图像RC等算法无法有效工作。而对于背景部分与前景部分在色彩空间分布较为接近的情况，例如图~\ref{fig:chap2:comp1}中的第二行及图~\ref{fig:chap2:comp2}中的第三行，本文算法的处理结果同样优于基于全局对比度的RC等算法。\par
 \begin{figure}[h]
   \centering%
-      {\includegraphics[width=0.9\textwidth]{ch2/salcomp1.png}}
-
+      {\includegraphics[width=1\textwidth]{ch2/ECSSDRes.png}}\\
+(a)输入 \quad (b)正确结果 \quad (c)MC \quad (d) DSR \quad (e) PISA \quad (f)RC \quad (g)CHS \quad (h)RM\\
   \caption{ECSSD数据集部分图像显著性检测结果比较}
   \label{fig:chap2:comp1}
 \end{figure}
 \begin{figure}[h]
   \centering%
-      {\includegraphics[width=0.9\textwidth]{ch2/salcomp2.png}}
-
+      {\includegraphics[width=1\textwidth]{ch2/ASDRes.png}}\\
+(a)输入 \quad (b)正确结果 \quad (c)MC \quad (d) DSR \quad (e) PISA \quad (f)RC \quad (g)CHS \quad (h)RM\\
   \caption{ASD数据集部分图像显著性检测结果比较}
   \label{fig:chap2:comp2}
 \end{figure}
@@ -286,16 +286,16 @@ $$ S(I) = \frac{\sum_{i=1}^{P}PropCon(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\s
 $$F_{\beta} = \frac{(1+\beta^2)Precision \times Recall}{\beta^2 \times Precision + Recall}$$
 其中$Precision$为精度，$Recall$表示召回率，$\beta^2=0.3$. \par
 
-在实验中，为了消除二值化阈值对结果的影响，将阈值设定为在0到255之间变化，绘制F-Measure随阈值变化的曲线，见图~\ref{fig:sub:ecssdFCurve}和图~\ref{fig:sub:asdFCurve}，同时图~\ref{fig:sub:ecssdAvg}，~\ref{fig:sub:asdAvg}统计了各方法得到的F-Measure平均值和最大值。通过比较可以看出，本章算法在ECSSD数据库中的F-Measure平均值和最大值均优于其它算法，在ASD数据库中得到的平均F-Measure高于GMR算法外的其它算法。本文算法得到的F-Measure曲线较为扁平，即F-Measure取值受阈值影响较小。当阈值在128附近时F-Measure可以得到最大值。比较两个数据集，可以发现ASD数据集中的部分图像背景复杂度较低，因此各算法在ASD数据集上的测试结果均优于ECSSD数据集上的结果。由于本文算法的结果是通过区域合并得到的，只有超像素级精度，这使得本文算法在ASD数据库中得到的结果的精度要略低于GMR，RC等算法。 \par
+在实验中，为了消除二值化阈值对结果的影响，将阈值设定为在0到255之间变化，绘制F-Measure随阈值变化的曲线，见图~\ref{fig:sub:ecssdFCurve}和图~\ref{fig:sub:asdFCurve}，同时图~\ref{fig:sub:ecssdAvg}，~\ref{fig:sub:asdAvg}统计了各方法得到的F-Measure平均值和最大值。通过比较可以看出，本章算法在ECSSD数据集中的F-Measure平均值和最大值略微大于PISA算法，且均优于其他算法， 在ASD数据集中得到的最大F-Measure为0.89， 略低于最高的MC算法(0.91)。 本文算法得到的F-Measure曲线较为扁平， 即F-Measure取值受阈值影响较小， 当阈值门限在128附近时F-Measure可以得到最大值。 比较两个数据集，可以发现ASD数据集中的部分图像背景复杂度较低，因此各算法在ASD数据集上的测试结果均优于ECSSD数据集上的结果。由于本章算法的结果是通过基于超像素的区域合并得到的，显著性值的最小计算单元为超像素，这使得本文算法在ASD数据集中得到的结果的精度要略低于GMR、PISA等算法。 \par
 $MAE$是另一个衡量显著性区域检测结果准确性的指标，其定义为：
-$$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$分别为图像的宽和高，$S$为显著性检测结果，$G$为正确值，两者均归一化在[0,1]之间。MAE值越低说明显著性检测误差越小，图~\ref{fig:MAERst}是各算法MAE值在两个数据库中的比较结果。本文算法同样在ECSSD数据库中优于其它算法，在ASD数据库中略高于MAE最低的GMR算法。\par
+$$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$分别为图像的宽和高，$S$为显著性检测结果，$G$为正确值，两者均归一化在[0,1]之间。MAE值越低说明显著性检测误差越小，图~\ref{fig:MAERst}是各算法MAE值在两个数据库中的比较结果。本文算法同样在ECSSD数据库中优于其它算法，在ASD数据库中略高于MAE最低的PISA算法。\par
 \begin{figure}[h]
   \centering%
   \subcaptionbox{F-Measure曲线\label{fig:sub:ecssdFCurve}} %标题的长度，超过则会换行，如下一个小图。
-    {\includegraphics[width=0.45\textwidth]{ch2/ECSSD_FCurve}}%
+    {\includegraphics[width=0.45\textwidth]{ch2/FCurve_ECSSD}}%
  %\hspace{1em}%
   \subcaptionbox{平均F-Measure\label{fig:sub:ecssdAvg}}
-      {\includegraphics[width=0.45\textwidth]{ch2/ECSSD_FBar.png}}
+      {\includegraphics[width=0.45\textwidth]{ch2/FMeasure_ECSSD.png}}
   \caption{ECSSD数据库F-Measure值比较}
   \label{fig:ECSSDRst}
 \end{figure}
@@ -303,10 +303,10 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
 \begin{figure}[h]
   \centering%
   \subcaptionbox{F-Measure曲线\label{fig:sub:asdFCurve}} %标题的长度，超过则会换行，如下一个小图。
-    {\includegraphics[width=0.45\textwidth]{ch2/ASD_FCurve}}%
+    {\includegraphics[width=0.45\textwidth]{ch2/FCurve_ASD}}%
  %\hspace{1em}%
   \subcaptionbox{平均F-Measure\label{fig:sub:asdAvg}}
-      {\includegraphics[width=0.45\textwidth]{ch2/ASD_FBar.png}}
+      {\includegraphics[width=0.45\textwidth]{ch2/FMeasure_ASD.png}}
   \caption{ASD数据库F-Measure值比较}
   \label{fig:ASDRst}
 \end{figure}
@@ -322,17 +322,17 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
   \label{fig:MAERst}
 \end{figure}
 
-部分算法的速度比较见表~\ref{tab:algTime}.所列数据在配备Intel i7 3.5GHz CPU，16GB RAM的电脑上测得，参与比较的算法均用C++语言实现，其中CSH,RC和GMR算法均使用作者公开的代码进行测试。ASD数据库和ECSSD数据库中图像大小平均约为400×300，表中所列时间为处理每幅图像所用的平均时间。本文算法的速度相比RC和GMR算法稍快,比CSH算法快4倍左右。\par
+部分算法的速度比较见表~\ref{tab:algTime}.所列数据在配备Intel i7 3.5GHz CPU，16GB RAM的电脑上测得，参与比较的算法均用C++语言实现，其中CHS，RC和GMR算法均使用作者公开的代码进行测试。ASD数据库和ECSSD数据库中图像大小平均约为$400 \times 300$，表中所列时间为处理每幅图像所用的平均时间。本章算法的速度相比RC和GMR算法稍快,比CHS算法快4倍左右，比与本章算法准确度接近的PISA快7倍左右。\par
 
 \begin{table}[htb]
   \centering
 
   \caption{算法时间比较}
   \label{tab:algTime}
-    \begin{tabularx}{\linewidth}{lXXXX}
+    \begin{tabularx}{\linewidth}{lXXXXX}
       \toprule[1.5pt]
-      {\heiti 算法} & {\heiti RM} & {\heiti CHS} & {\heiti RC} & {\heiti GMR} \\\midrule[1pt]
-      时间(s) & { 0.084} & 0.362 & 0.091 & 0.097 \\
+      {\heiti 算法} & {\heiti RM} & {\heiti CHS} & {\heiti RC} & {\heiti GMR} &{\heiti PISA}\\\midrule[1pt]
+      时间(s) & {\bf 0.084} & 0.362 & 0.091 & 0.097&0.583 \\
 
       \bottomrule[1.5pt]
     \end{tabularx}
@@ -342,14 +342,14 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
 \subsection{图像分割结果}
 \label{sec:sub:segmentation}
 
-本章所提算法通过区域合并的方式，逐渐将图像中相似区域进行合并，在合并过程中可以得到一系列图像分割结果。这些图像分割结果可以为显著性前景检测，对象定位等应用提供重要线索。在本小结中，将本章算法与其它图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}进行比较。在实验中，将图像分割目标设为10。利用各算法进行图像分割时有时不能保证正好得到10个区域，这时选取最接近目标的分割结果作为最终结果。一个好的图像分割算法可以将感兴趣区域其中在一个区域，并且与背景区域分开。如果分割结果所包含的区域过多则包含较多冗余信息，过少则会使得前景区域合并到背景区域中，无法准确提取显著性对象。因此实验中将分割目标设为10左右，基本能同时满足简化图像结构以及保持显著性对象边界的目标。\par
+本章所提算法通过区域合并的方式逐渐将图像中相似区域进行合并，在合并过程中可以得到一系列图像分割结果。这些图像分割结果可以为显著性前景检测，对象定位等应用提供重要线索。在本节中，将本章算法与其它图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}进行比较。在实验中，将图像分割目标设为10。利用各算法进行图像分割时有时不能保证正好得到10个区域，这时选取最接近目标的分割结果作为最终结果。一个好的图像分割算法可以将感兴趣区域其中在一个区域，并且与背景区域分开。如果分割结果所包含的区域过多则包含较多冗余信息，过少则会使得前景区域合并到背景区域中，无法准确提取显著性对象。因此实验中将分割目标设为10左右，基本能同时满足简化图像结构以及保持显著性对象边界的目标。\par
 实验中部分比较结果如图~\ref{fig:segCom}所示，其中(a)列图像为输入图像，(b)-(e)列分别为SRM、文献~\inlinecite{Xiao2015Complexity}、Mean Shift~\cite{MeanShift}，以及本章算法的分割结果。通过比较可以看出，本章算法的分割结果基本上能够避免将前景对象合并到背景中。而其它图像分割算法均存在将前景对象合并到背景中的情况。主要原因在于这些图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}在分割时没有考虑到分割过程中不同阶段的特点，始终以同样的策略进行区域合并。另外，在合并过程中没有对遮挡和空洞等情况进行特殊处理。\par
 综上所述，本章提出的显著性引导的区域合并算法能够在图像分割过程中较好的保持前景对象的边界，避免其合并到背景区域；同时经过遮挡和空洞处理后，背景区域也可以合并到一起降低了复杂度，有助于显著性前景的提取。
 \begin{figure}[htb]
   \centering%
       {\includegraphics[width=0.9\textwidth]{ch2/segcom.png}}\\
 
-  \caption{显著性引导的区域合并示意图}
+  \caption{图像分割效果比较，(a)输入图像，(b)SRM~\cite{Richard2004Statistical}，(c)文献~\inlinecite{Xiao2015Complexity}，(d)Mean Shift~\cite{MeanShift}，(e)本章算法}
   \label{fig:segCom}
 \end{figure}
 
@@ -357,7 +357,7 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
 \subsection{算法失败的情况}
 \label{subsec:failure}
 
-虽然本章算法可以处理部分复杂背景的情况，但在处理背景连续性较差的图像时效果较差。主要原因是在区域合并的过程中会将前景区域错误的合并到背景中，从而无法提取到正确的前景。例如,在图~\ref{fig:fail}中，前两列为输入图像和正确前景，后三列分别为本文算法第一阶段，第二阶段合并结果以及最终提取的显著区域结果。由于这两幅图像中的背景部分十分复杂，并不具备本文假设的连续性。因此在区域合并时误将前景区域合并到了背景中，从而导致算法无法提取正确的显著性前景。
+虽然本章算法可以处理部分复杂背景的情况，但在处理背景连续性较差的图像时效果较差。主要原因是在区域合并的过程中会将前景区域错误的合并到背景中，从而无法提取到正确的前景。例如，在图~\ref{fig:fail}中，前两列为输入图像和正确前景，后三列分别为本文算法第一阶段，第二阶段合并结果以及最终提取的显著区域结果。由于这两幅图像中的背景部分十分复杂，并不具备本文假设的连续性。因此在区域合并时误将前景区域合并到了背景中，从而导致算法无法提取正确的显著性前景。
  \begin{figure}[htb]
   \centering%
       {\includegraphics[width=0.9\textwidth]{ch2/fail.png}}
@@ -369,6 +369,6 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
 
 \section{本章小结}
 图像显著性区域检测是当前计算机视觉相关领域备受关注的研究热点区域之一。准确提取图像中显著性对象对于图像的识别和理解来说是重要的第一步。虽然人类视觉系统与生俱来就具备这种能力，但是在计算机上实现达到甚至超越人类视觉系统的识别准确度的显著性检测算法却较为困难。虽然近些年提出的一些算法大大提高了图像显著性检测算法的效率和准确度~\cite{ChengPAMI,ufo,Yan2014Hierarchical,geodesicDistance}，但是对于一些困难的情况，例如背景复杂度高、前景与背景相近等，目前已有的算法仍无法得到令人满意的结果。\par
-本章对图像显著性检测问题进行了研究。借助图像背景线索，以将图像分为显著性对象和背景2个区域为目标，提出了一种显著性引导的区域合并算法。由于在区域合并的不同阶段采取了不同的合并策略，本章算法能有效的防止在合并过程中将前景显著性对象错误的合并到背景区域。同时，为了得到准确的显著性对象，本章算法利用背景线索进行区域显著性分析，不断将非显著性区域合并到背景区域。最后，将合并过程中得到的非背景区域作为候选显著性区域，通过加权平均的方式得到最终结果。区别于当前主流算法的主要思路，本章算法采用了基于背景的线索和图像合并的方式提取显著性对象。与前景线索相比，背景线索的通用性更强。图像中的前景对象特征会随着图像内容和应用场景的变化而千变万化，而图像背景部分所具备的连续性强等特点却不会随着图像内容而变化。\par
-为了验证本章算法那的有效性，在2个公开数据集上测试了本章所提出的算法。实验结果证明了本章所提算法的有效性。在主要是由自然图像构成，难度较大的ECSSD数据集上的实验中，本章算法的准确度和误差指标均优于其它参与比较的算法。本章算法简单直观，且效率高，且易于实现。\par
+本章对图像显著性检测问题进行了研究。借助图像背景线索，以将图像分为显著性对象和背景2个区域为目标，提出了一种基于区域合并的显著性检测算法。由于在区域合并的不同阶段采取了不同的合并策略，本章算法能有效的防止在合并过程中将前景显著性对象错误的合并到背景区域。同时，为了得到准确的显著性对象，本章算法利用背景线索进行区域显著性分析，不断将非显著性区域合并到背景区域。最后，将合并过程中得到的非背景区域作为候选显著性区域，通过加权平均的方式得到最终结果。区别于当前主流算法的主要思路，本章算法采用了基于背景的线索和图像合并的方式提取显著性对象。与前景线索相比，背景线索的通用性更强。图像中的前景对象特征会随着图像内容和应用场景的变化而千变万化，而图像背景部分所具备的连续性强等特点却不会随着图像内容而变化。\par
+为了验证本章算法那的有效性，在2个公开数据集上测试了本章所提出的算法。实验结果证明了本章所提算法的有效性。在主要是由自然图像构成，难度较大的ECSSD数据集上的实验中，本章算法的准确度和误差指标均优于其他参与比较的算法。本章算法简单直观，且效率高，且易于实现。\par
 由于本章所提算法主要基于背景的连续性特点。针对背景连续性不足的图像，目前本章算法无法有效的通过区域合并将背景部分合并在一起，同时可能会将前景错误的合并到背景中。为解决这一问题，在下一步的工作中将考虑引入色彩相似性之外的其它度量方式以及多尺度分析方法来更好的评估图像背景区域之间的相似性。
