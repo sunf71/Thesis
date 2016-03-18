@@ -21,7 +21,7 @@
 \end{figure}
 
 \par
-为了解决这一问题，本章将显著性区域检测问题视为图像分割问题，以显著性引导的区域合并的方式将图像分为显著性区域（前景）和背景两个区域。在合并过程中采用了与主流基于区域的图像显著性检测算法~\cite{Achanta08,ChengPAMI,ufo,Yan2014Hierarchical}相反的策略，即不再尝试定位显著性区域，而是利用背景线索来估计背景区域，并不断将显著性差的非前景区域合并到背景区域。根据观察，大部分自然图像中的背景部分的像素具有连续性强的特点~\cite{huamiao}，例如室外拍摄图像中的天空，地面等背景区域。此外，图像的边缘部分应该大部分都是背景~\cite{backgroundPrior}。如果不断将图像中相似的小区域进行合并，背景部分像素应该更容易合并到一起，并且将包含更多的图像边缘。观察图~\ref{fig:saliencyCom}中输入图像的背景部分，如第一行图像中的地面以及狮子身后的山、第二行图像中的石块地面、以及第三行图像中的草地，虽然这些背景部分色彩分布与前景接近或者具有较高的复杂度，其仍然具有这种较强的连续性。在区域合并时本文没有尝试将显著性区域合并到一起，而是利用背景区域线索，首先将图像进行超像素分割，随后在区域显著分析的引导下不断将显著性最差的区域合并到背景区域。最后，利用合并过程中得到的多个候选显著性区域加权得到最终的显著性区域结果。将本章算法在两个公开的数据库ASD~\cite{Achanta08}和ECSSD~\cite{ECSSD}中的共计2000张图像中进行了测试并与其它算法进行了对比，实验结果验证了本章所提算法的有效性。在较为困难的ECSSD测试集中，本章算法得到的F-Mearsure以及平均绝对误差(Mean Absolute Error,MAE)均优于其它参与比较的相关算法。
+为了解决这一问题，本章将显著性区域检测问题视为图像分割问题，以显著性引导的区域合并的方式将图像分为显著性区域（前景）和背景两个区域。在合并过程中采用了与主流基于区域的图像显著性检测算法~\cite{Achanta08,ChengPAMI,ufo,Yan2014Hierarchical}相反的策略，即不再尝试定位显著性区域，而是利用背景线索来估计背景区域，并不断将显著性差的非前景区域合并到背景区域。根据观察，大部分自然图像中的背景部分的像素具有连续性强的特点~\cite{huamiao}，例如室外拍摄图像中的天空，地面等背景区域。此外，图像的边缘部分应该大部分都是背景~\cite{backgroundPrior}。如果不断将图像中相似的小区域进行合并，背景部分像素应该更容易合并到一起，并且将包含更多的图像边缘。观察图~\ref{fig:saliencyCom}中输入图像的背景部分，如第一行图像中的地面以及狮子身后的山、第二行图像中的石块地面、以及第三行图像中的草地，虽然这些背景部分色彩分布与前景接近或者具有较高的复杂度，其仍然具有这种较强的连续性。在区域合并时本文没有尝试将显著性区域合并到一起，而是利用背景区域线索，首先将图像进行超像素分割，随后在区域显著分析的引导下不断将显著性最差的区域合并到背景区域。最后，利用合并过程中得到的多个候选显著性区域加权得到最终的显著性区域结果。将本章算法在两个公开的数据库ASD~\cite{Achanta08}和ECSSD~\cite{ECSSD}中的共计2000张图像中进行了测试并与其它算法进行了对比，实验结果验证了本章所提算法的有效性。在较为困难的ECSSD测试集中，本章算法得到的F-Mearsure以及平均绝对误差(MAE)均优于其它参与比较的相关算法。
 
 \section{相关工作}
 \label{sec:relatedWorks}
@@ -271,14 +271,14 @@ $$ S(I) = \frac{\sum_{i=1}^{P}PropCon(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\s
 \begin{figure}[h]
   \centering%
       {\includegraphics[width=1\textwidth]{ch2/ECSSDRes.png}}\\
-(a)输入 \quad (b)正确结果 \quad (c)MC \quad (d) DSR \quad (e) PISA \quad (f)RC \quad (g)CHS \quad (h)RM\\
+(a)输入 (b)正确结果(c)MC \quad (d) DSR \quad (e) PISA \quad (f)RC \quad (g)CHS \quad (h)RM\\
   \caption{ECSSD数据集部分图像显著性检测结果比较}
   \label{fig:chap2:comp1}
 \end{figure}
 \begin{figure}[h]
   \centering%
       {\includegraphics[width=1\textwidth]{ch2/ASDRes.png}}\\
-(a)输入 \quad (b)正确结果 \quad (c)MC \quad (d) DSR \quad (e) PISA \quad (f)RC \quad (g)CHS \quad (h)RM\\
+(a)输入 (b)正确结果(c)MC \quad (d) DSR \quad (e) PISA \quad (f)RC \quad (g)CHS \quad (h)RM\\
   \caption{ASD数据集部分图像显著性检测结果比较}
   \label{fig:chap2:comp2}
 \end{figure}
