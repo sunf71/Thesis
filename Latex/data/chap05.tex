@@ -16,7 +16,7 @@ $$ \alpha_i^{(t) = \hat{\alpha_i^{(t-1)}}}+1$$
 其中 $M_i^{(t-1)}$，$V_i^{(t-1)}$分别定义为：
 $$ M_i^{(t)} = \frac{1}{|G_i|}\sum_{j\in G_i}I_j^{(t)}$$
 $$ V_i^{(t)} = \max_{j \in G_i}{(\mu_i^{(i)})-\mu_j^{(t)}}^2 $$
-在文献~\inlinecite{5.8s}算法中，每个网格内同时维护两个高斯模型，其中一个为当前起作用的模型$Model_a$，另一个为候选模型$Model_c$。当观察到当前帧图像与$Model_a$匹配时，利用上述的更新策略对$Model_a$进行更新；若当前帧图像与$Model_c$匹配时，利用同样的更新策略对$Model_c$进行更新。在模型匹配计算前景对象时起作用的一直是$Model_c$，当$Model_c$的生存时间大于$Model_s$的生存时间时，将其两者交换。这种双模式的单高斯模型在效率上比混合高斯模型(GMM)效率更高，且能处理包含动态背景的视频。由于相机是运动的，每次在匹配模型时需要估算相机的运动并进行补偿，返回到静态相机情形。文献~\inlinecite{5.8s}算法利用每个网格点的KLT跟踪结果估算单应性局则很的方式实现。在相机运动补偿后，根据基于像素点和网格中心点的距离的权值，利用周围多个网格高斯模型加权得到像素点未知的高斯模型，通过模型匹配得到像素前景分割结果。由于模型简单，文献~\inlinecite{5.8s}的速度非常快，甚至能在智能手机上实现实时检测。但是文献~\inlinecite{5.8s}没有给出该算法前景检测准确度的定量分析，且实验所用的视频均较容易识别前景。通过实验，作者发现在常用数据库视频的测试中，文献~\inlinecite{5.8s}算法的前景检测准确度较低，而且无法处理相机快速移动的情况。\par
+在文献~\inlinecite{5.8s}算法中，每个网格内同时维护两个高斯模型，其中一个为当前起作用的模型$Model_a$，另一个为候选模型$Model_c$。当观察到当前帧图像与$Model_a$匹配时，利用上述的更新策略对$Model_a$进行更新；若当前帧图像与$Model_c$匹配时，利用同样的更新策略对$Model_c$进行更新。在模型匹配计算前景对象时起作用的一直是$Model_c$，当$Model_c$的生存时间大于$Model_s$的生存时间时，将其两者交换。这种双模式的单高斯模型在效率上比混合高斯模型(GMM)效率更高，且能处理包含动态背景的视频。由于相机是运动的，每次在匹配模型时需要估算相机的运动并进行补偿，返回到静态相机情形。文献~\inlinecite{5.8s}算法利用每个网格点的KLT跟踪结果估算单应性矩阵的方式实现。在相机运动补偿后，根据基于像素点和网格中心点的距离的权值，利用周围多个网格高斯模型加权得到像素点位置的高斯模型，通过模型匹配得到像素前景分割结果。由于模型简单，文献~\inlinecite{5.8s}的速度非常快，甚至能在智能手机上实现实时检测。但是文献~\inlinecite{5.8s}没有给出该算法前景检测准确度的定量分析，且实验所用的视频均较容易识别前景。通过实验，作者发现在常用数据库视频的测试中，文献~\inlinecite{5.8s}算法的前景检测准确度较低，而且无法处理相机快速移动的情况。\par
 
 文献~\cite{ACPRRealTime}提出了一种基于像素点轨迹的准实时移动相机视频前景提取算法。该算法处理分辨率为$640 \times 480$的视频的速度约为1.8帧/秒。在针对移动相机的视频背景减除算法中，基于像素点轨迹的方法是主要类型之一。假设在视频中的$F$帧图像中一共有$P$个像素点轨迹，第$i$个像素点的轨迹可以表示为$w_i={[x_{1i}^T \cdots x_{Fi}^{T}]}^T \in \mathbf{R}^{1 \times 2F}$，其中在每一帧图像中像素点的坐标为$ x_{fi} = {[u_{fi},v_{fi}]}^T$。所有这些像素点轨迹组成了一个$2F \times P$的矩阵：
 \begin{equation}
@@ -30,21 +30,21 @@ v_{11} & \cdots  &  v_{1P}\\
 \end{Bmatrix}
 \end{equation} \par
 
-假设相机成像时满足正交投影，在理想情况下，公式~\ref{ch5:equ:trajmatrix}中的$\mathbf{W}$矩阵的秩应该为3\cite{Tomasi_1992}。由于通过特征点跟踪获取像素点额长期轨迹非常耗时，文献~\cite{ACPRRealTime}提出只利用前一帧图像来获取像素点轨迹，即每个轨迹通过两个特征点的位置只差来计算，第$i$个特征点可以用二维空间向量$\mathbf{v_i}=(dx_i,dy_i) \in \mathbf{R}^2$表示。此外该算法中还利用基于分块的方法获取稀疏的轨迹集合，将图像分为$N \times N$个分块，像素点轨迹矩阵为：
+假设相机成像时满足正交投影，在理想情况下，公式~\ref{ch5:equ:trajmatrix}中的$\mathbf{W}$矩阵的秩应该为3\cite{Tomasi_1992}。由于通过特征点跟踪获取像素点额长期轨迹非常耗时，文献~\cite{ACPRRealTime}提出只利用前一帧图像来获取像素点轨迹，即每个轨迹通过两个特征点的位置之差来计算，第$i$个特征点可以用二维空间向量$\mathbf{v_i}=(dx_i,dy_i) \in \mathbf{R}^2$表示。此外该算法中还利用基于分块的方法获取稀疏的轨迹集合，将图像分为$N \times N$个分块，像素点轨迹矩阵为：
 $$ \mathbf{W}_{2 \times (N \times N )} = {[v_{1}^T \cdots v_{N \times N}^T]}^T = \begin{Bmatrix}
 dx_1 & \cdots & dx_{N \times N} \\
 dy_1 & \cdots & dy_{N \times N}
 \end{Bmatrix}$$
 利用简化后的矩阵，文献~\cite{ACPRRealTime}算法对轨迹点进行聚类将轨迹点分为背景轨迹点和前景轨迹点两类，最后将轨迹点的标记信息扩散到整幅图像获取每个像素点的前景/背景标记。文献~\cite{ACPRRealTime}的算法在Hopkins数据集中的视频上\cite{HopKinsDataSet}得到的F-Score大约在0.7左右，比文献~\cite{5.8s}算法的准确度高，但是其速度只有不到2帧/秒，远没有达到实时处理。\par
 
-Wang等人~\cite{WangTMM2014}提出了一种多个视频的共同前景提取算法，从一组视频中提取其中共有的前景对象。该算法利用时间连续的超像素算法(temporal superpixels, TSP )对视频中连续的视频帧图像进行分割，将不同视频中的共有前景对象归为同一类。本章提出的算法在流程上与文献~\inlinecite{WangTMM2014}中的算法有相似之处，均是先对视频图像帧进行超像素分割, 然后对超像素进行合并得到前景线索；不同之处是文献~\inlinecite{WangTMM2014}]处理的是提取多个视频中的共同前景问题, 且本章算法所采用的单图像超像素分割算法以及区域合并算法均与文献~\inlinecite{WangTMM2014}有较大区别。 此外，文献~\inlinecite{WangTMM2014}还提出了一种基于Markov随机场的优化过程对结果进行求精， 能准确地提取多个视频中共同的前景，主要用于视频编辑等领域。
+Wang等人~\cite{WangTMM2014}提出了一种多个视频的共同前景提取算法，从一组视频中提取其中共有的前景对象。该算法利用时间连续的超像素算法(temporal superpixels, TSP )对视频中连续的视频帧图像进行分割，将不同视频中的共有前景对象归为同一类。本章提出的算法在流程上与文献~\inlinecite{WangTMM2014}中的算法有相似之处，均是先对视频图像帧进行超像素分割, 然后对超像素进行合并得到前景线索，不同之处是文献~\inlinecite{WangTMM2014}处理的是提取多个视频中的共同前景问题， 且本章算法所采用的单图像超像素分割算法以及区域合并算法均与文献~\inlinecite{WangTMM2014}有较大区别。 此外，文献~\inlinecite{WangTMM2014}还提出了一种基于MRF的优化过程对结果进行求精， 能准确地提取多个视频中共同的前景，主要用于视频编辑等领域。
 
 
 
 
 \section{算法描述}
 \label{ch5:sec:algorithm}
-本文算法的流程如图1所示。首先对图像进行超像素分割，考虑背景像素的连续性， 提出一种基于超像素的区域增长算法对图像进行图像分割预处理。利用背景部分连续性特点，以区域合并的方式不断扩大背景区域的范围。预处理过程结束后得到一个图像区域分割结果，其中大部分背景像素集中在大区域中，属于前景的对象和一些包含边缘和角点的前景处在面积较小的区域中。因此对这部分可能是前景的小区域再进行进一步计算。 为了估算相机运动， 提出一种基于相对光流的特征点筛选算法，筛选出属于背景的特征点， 并利用这些特征点以分块的方式估算相机的运动。 最后通过比较这些超像素的光流与所估算的相机运动的一致性来确定最终的前景。 本文算法简单直接， 不需要建立任何背景模型和计算点轨迹，利用GPU和CPU的混合编程可以实现实时处理。 大量实验证明， 本文算法的前景检测准确度F-Score值达到了0.7左右，远高于同类实时算法\cite{5.8s}。下面对各主要部分进行详细描述。
+本文算法的流程如图~\ref{ch5:fig:flowchart}所示。首先对图像进行超像素分割，考虑背景像素的连续性， 提出一种基于超像素的区域增长算法对图像进行图像分割预处理。利用背景部分连续性特点，以区域合并的方式不断扩大背景区域的范围。预处理过程结束后得到一个图像区域分割结果，其中大部分背景像素集中在大区域中，属于前景的对象和一些包含边缘和角点的前景处在面积较小的区域中。因此对这部分可能是前景的小区域再进行进一步计算。 为了估算相机运动， 提出一种基于相对光流的特征点筛选算法，筛选出属于背景的特征点， 并利用这些特征点以分块的方式估算相机的运动。 最后通过比较这些超像素的光流与所估算的相机运动的一致性来确定最终的前景。 本文算法简单直接， 不需要建立任何背景模型和计算点轨迹，利用GPU和CPU的混合编程可以实现实时处理。 大量实验证明， 本文算法的前景检测准确度F-Score值达到了0.7左右，远高于同类实时算法\cite{5.8s}。下面对各主要部分进行详细描述。
 \begin{figure}
   \centering
   % Requires \usepackage{graphicx}
@@ -54,7 +54,7 @@ Wang等人~\cite{WangTMM2014}提出了一种多个视频的共同前景提取算
 
 \subsection{基于超像素的区域增长算法}
 在自然场景中所拍摄的视频中, 背景和前景的一个显著区别是背景通常具有连续性, 如天空、树、 墙面、地面等。 这些部分像素的特点是在周围较大的区域内存在与其相似的像素。
- 如图~\ref{ch5:fig:cont}所示, 图~\ref{ch5:fig:sub:img}是视频中的一帧图像, 图~\ref{ch5:fig:sub:imgCont}中用不同灰度标注不同背景区域(深色表示树林区域,浅色表示地面区域)。人眼在观察图~\ref{ch5:fig:sub:img} 时，很快能发现图像中背景部分包括树林和地面等， 这些部分的像素具有明显的连续性； 相反， 作为前景的汽车上的像素则没有这种连续性。\par
+ 如图~\ref{ch5:fig:cont}所示, 图~\ref{ch5:fig:sub:img}是视频中的一帧图像, 图~\ref{ch5:fig:sub:imgCont}中用不同颜色标注不同背景区域(绿色表示树林区域，灰色表示地面区域)。人眼在观察图~\ref{ch5:fig:sub:img} 时，很快能发现图像中背景部分包括树林和地面等， 这些部分的像素具有明显的连续性； 相反， 作为前景的汽车上的像素则没有这种连续性。\par
 
  \begin{figure}[htb]
   \centering%
@@ -71,7 +71,7 @@ Wang等人~\cite{WangTMM2014}提出了一种多个视频的共同前景提取算
 S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
 \end{equation}
 
-其中， $D_c(x,y)$是区域之间的颜色直方图的距离，$D_g(x,y)$表示梯度直方图的距离。 本章算法在RGB色彩空间建立包含4096个单元的直方图来描述超像素的颜色特征， 另外利用36个单元的梯度直方图来表示超像素的梯度特征。 采用巴氏距离来计算直方图之间的距离，式~\ref{ch5:equ:distance}中, $c$是加权系数, 其值可以通过超像素之间的平均距离来确定，$c = D_c / (D_c + D_g)$  ， 其中$D_c$，$D_g$分别表示图像中相邻超像素之间颜色直方图和梯度直方图的平均距离。与~\ref{ch4:sec:sub:ssrg}中的~\ref{ch4:alg:ssrg}算法类似，本章提出了一种基于超像素的区域增长预处理方法，见算法~\ref{ch5:alg:srg}，对视频图像帧进行预处理，获得可能的前景区域的线索。本章与~\ref{ch4:alg:ssrg}算法不同之处在于~\ref{ch4:alg:ssrg}算法利用图像的连续性特点将已知的背景种子点扩展到整幅图像，将图像分为前景和背景两个区域；而本章提出的~\ref{ch5:alg:srg}算法通过随机选取种子点的方式，将图像分为多个区域，其中面积大的区域是背景的概率较大，而面积较小的区域为前景的几率较大。
+其中， $D_c(x,y)$是区域之间的颜色直方图的距离，$D_g(x,y)$表示梯度直方图的距离。 本章算法在RGB色彩空间建立包含4096个单元的直方图来描述超像素的颜色特征， 另外利用36个单元的梯度直方图来表示超像素的梯度特征。 采用巴氏距离来计算直方图之间的距离，式~\ref{ch5:equ:distance}中, $c$是加权系数, 其值可以通过超像素之间的平均距离来确定，$c = D_c / (D_c + D_g)$  ， 其中$D_c$，$D_g$分别表示图像中相邻超像素之间颜色直方图和梯度直方图的平均距离。与~\ref{ch4:sec:sub:ssrg}中的~\ref{ch4:alg:ssrg}算法类似，本章提出了一种基于超像素的区域增长预处理方法，见算法~\ref{ch5:alg:srg}，对视频图像帧进行预处理，获得可能的前景区域的线索。本章预处理算法与~\ref{ch4:alg:ssrg}算法不同之处在于~\ref{ch4:alg:ssrg}算法利用图像的连续性特点将已知的背景种子点扩展到整幅图像，将图像分为前景和背景两个区域；而本章提出的~\ref{ch5:alg:srg}算法通过随机选取种子点的方式，将图像分为多个区域，其中面积大的区域是背景的概率较大，而面积较小的区域为前景的几率较大。
 \renewcommand{\algorithmcfname}{算法}
 \begin{algorithm}[ht]
 \caption{基于超像素的区域增长算法}
@@ -95,7 +95,7 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
  将$N$中的超像素添加到$C$中\;}
 \end{algorithm}
 
-~\ref{ch5:alg:srg}算法中，$T$的值为$T= c \times D_c + (1-c) \times D_g$。图~\ref{ch5:fig:srg}所示为区域增长算法的一个计算实例。 图~\ref{ch5:fig:sub:superpixel}是输入图像的超像素分割结果， 图~\ref{ch5:fig:sub:srg}是区域增长算法的输出结果， 其中用不同的颜色表示不同的区域。 从图~\ref{ch5:fig:sub:srg}中可以看到， ~\ref{ch5:alg:srg}算法能有效地将具有连续性的背景区域超像素合并到一起， 使得这些大区域所包含的超像素数量要明显多于前景区域。 因此本章算法直接将预处理后超像素数量大于15的区域所包含的超像素判为背景。 对于剩下的超像素， 再用~\ref{ch5:sec:sub:sub:motionC}节介绍的算法， 根据其光流与相机运动的一致性来进一步判断其是否为前景。
+算法~\ref{ch5:alg:srg}中，$T$的值为$T= c \times D_c + (1-c) \times D_g$。图~\ref{ch5:fig:srg}所示为区域增长算法的一个计算实例。 图~\ref{ch5:fig:sub:superpixel}是输入图像的超像素分割结果， 图~\ref{ch5:fig:sub:srg}是区域增长算法的输出结果， 其中用不同的颜色表示不同的区域。 从图~\ref{ch5:fig:sub:srg}中可以看到， 算法~\ref{ch5:alg:srg}能有效地将具有连续性的背景区域超像素合并到一起， 使得这些大区域所包含的超像素数量要明显多于前景区域。 因此本章算法直接将预处理后超像素数量大于15的区域所包含的超像素判为背景。 对于剩下的超像素， 再用~\ref{ch5:sec:sub:sub:motionC}节介绍的算法， 根据其光流与相机运动的一致性来进一步判断其是否为前景。
  \begin{figure}[htb]
   \centering%
   \subcaptionbox{超像素分割结果\label{ch5:fig:sub:superpixel}} %标题的长度，超过则会换行，如下一个小图。
@@ -112,7 +112,7 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
 
 \subsubsection{特征点筛选}
 \label{ch5:sec:sub:sub:fp}
- 为了估算相机运动，首先通过(Kanade-Lucas-Tomasi, KLT)算法~\cite{KLT}对相邻帧进行特征点提取和匹配。得到匹配特征点后，需要筛选出属于背景特征点， 并用它们来估算描述相机运动。在文献~\cite{5.8s} 中, 基于相机运动可以用一个全局单应性矩阵描述这一假设，使用RANSAC 算法来筛选背景特征点。实际上， 根据多视图几何原理，在相机自由运动的情况下这一假设并不一定成立~\cite{Multitransform}。 假设在世界坐标系下， 三维空间场景点用齐次坐标$\mathbf{X}={(x,y,z,w)}^T$表示, $\mathbf{p}$ 为其投影到二维图像中的坐标。其投影关系为$\mathbf{p} = \mathbf{QX} = \mathbf{K[I|0]X}$ ; 其中, $\mathbf{K}$ 是摄像机参数矩阵, $\mathbf{Q}$ 是一个3 行4 列的矩阵。 当摄像机有旋转$\mathbf{R}$ 和平移$\mathbf{T}$时， $\mathbf{X}$将投影到另一帧图像，其坐标为 $\mathbf{\acute{p}}=\mathbf{\acute{K}[R|T]X}$, 这时$\mathbf{p}$ 与$\mathbf{\acute{p}}$ 之间并不存在一对一的映射关系。 考虑以下2 种特殊情况：
+ 为了估算相机运动，首先通过KLT算法~\cite{KLT}对相邻帧进行特征点提取和匹配。得到匹配特征点后，需要筛选出属于背景特征点， 并用它们来估算描述相机运动。在文献~\inlinecite{5.8s} 中, 基于相机运动可以用一个全局单应性矩阵描述这一假设，使用RANSAC 算法来筛选背景特征点。实际上， 根据多视图几何原理，在相机自由运动的情况下这一假设并不一定成立~\cite{Multitransform}。 假设在世界坐标系下， 三维空间场景点用齐次坐标$\mathbf{X}={(x,y,z,w)}^T$表示， $\mathbf{p}$ 为其投影到二维图像中的坐标。其投影关系为$\mathbf{p} = \mathbf{QX} = \mathbf{K[I|0]X}$ ; 其中, $\mathbf{K}$ 是摄像机参数矩阵， $\mathbf{Q}$ 是一个3 行4 列的矩阵。 当摄像机有旋转$\mathbf{R}$ 和平移$\mathbf{T}$时， $\mathbf{X}$将投影到另一帧图像，其坐标为 $\mathbf{\acute{p}}=\mathbf{\acute{K}[R|T]X}$, 这时$\mathbf{p}$ 与$\mathbf{\acute{p}}$ 之间并不存在一对一的映射关系。 考虑以下2 种特殊情况：
  \begin{enumerate}
    \item 若摄像机没有平移只有旋转， 有$\mathbf{\acute{p}}=\mathbf{\acute{K}RX}$， 即$\mathbf{p}$ 与$\mathbf{\acute{p}}$ 之间的变换可以用单应性矩阵$\mathbf{H}_R$表示。
    \item 若场景点共面， 不失一般性， 假设场景点都位于平面$z=0$之上。 矩阵$\mathbf{Q}$的第3列可以忽略， 因此有：
@@ -126,7 +126,7 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
  \end{enumerate}
 
 
-当相机运动不满足上述2个假设时， 不能用一个全局单应性矩阵来描述相机运动。由于RANSAC算法只能用于估算单一模型， 在这种情况下用RANSAC算法筛选出的背景特征点时可能会有较大误差。考虑到无论相机如何运动， 前景相对于背景都是运动的，可以利用这种相对的运动区分前景特征点和背景特征点。 假设视频中相邻图像帧$I_1,I_2$ 的匹配特征点分别为$\mathbf{p}$ 和$\mathbf{\acute{p}}$， 若已知$I_1$中的某个特征点$\mathbf{A}$是属于背景的特征点，那么在理想情况下，$I_1$中的其他的背景特征点$\mathbf{p}_b$与$\mathbf{A}$应该是相对静止的; 在$I_1$中 $\mathbf{p}_b$与$\mathbf{A}$ 对应的特征点分别用$\mathbf{\acute{p}}_b$ 和$\mathbf{\acute{A}}$ 表示，这种相对静止的关系可以表示为：
+当相机运动不满足上述2个假设时， 不能用一个全局单应性矩阵来描述相机运动。由于RANSAC算法只能用于估算单一模型， 在这种情况下用RANSAC算法筛选出的背景特征点时可能会有较大误差。考虑到无论相机如何运动， 前景相对于背景都是运动的，可以利用这种相对的运动区分前景特征点和背景特征点。 假设视频中相邻图像帧$I_1，I_2$ 的匹配特征点分别为$\mathbf{p}$ 和$\mathbf{\acute{p}}$， 若已知$I_1$中的某个特征点$\mathbf{A}$是属于背景的特征点，那么在理想情况下，$I_1$中的其他的背景特征点$\mathbf{p}_b$与$\mathbf{A}$应该是相对静止的; 在$I_1$中 $\mathbf{p}_b$与$\mathbf{A}$ 对应的特征点分别用$\mathbf{\acute{p}}_b$ 和$\mathbf{\acute{A}}$ 表示，这种相对静止的关系可以表示为：
 \begin{equation}
 \label{ch5:equ:relFlow}
 \begin{cases}
@@ -136,7 +136,7 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
 \end{cases}
 \end{equation}
 	 	
-而对于前景特征点，因为其相对于背景发生了运动，其相对光流 并不满足式\ref{ch5:equ:relFlow}； 其中，$ \mathbf{V}_f = \mathbf{p}_f - \mathbf{A},\mathbf{V}_f = \mathbf{\acute{p}}_f - \mathbf{\acute{A}}$  。\par
+而对于前景特征点，因为其相对于背景发生了运动，其相对光流 并不满足公式\ref{ch5:equ:relFlow}； 其中，$ \mathbf{V}_f = \mathbf{p}_f - \mathbf{A},\mathbf{V}_f = \mathbf{\acute{p}}_f - \mathbf{\acute{A}}$  。\par
 若考虑深度等因素对特征点位置的影响， 可能会有一些背景上的特征点并不满足公式\ref{ch5:equ:relFlow}。 而当$t$取值较小时， 几乎全部前景上的特征点都不会满足公式~\ref{ch5:equ:relFlow}。 在估算单应性矩阵时只需要最少4组特征点，因此在筛选时并不需要得到全部背景特征点， 只需去除位于前景上的特征点。 本文利用这种基于相对光流的思想，选取满足公式~\ref{ch5:equ:relFlow}的部分背景特征点来估算相机运动。实验中， 将$t$的值固定设置为1.0。 背景点$A$的选择算法为$A = \arg \min_{a}\sum_{p}{\|\mathbf{V}_{pa} - \mathbf{V}_{\acute{p}\acute{a}}\|}^2$ ，其中，$ \mathbf{V}_{pa} = \mathbf{p} - \mathbf{a}$。 为验证筛选算法的有效性， 定义误检率$P_e$为$p_b$中前景特征点所占百分比，$$P_e= \frac{|p_b \in F |}{|P_b|} \times 100. $$
 作者在Hopkins视频数据库~\cite{HopKinsDataSet}中的10个视频上进行了实验， 对本章提出的背景特征点筛选算法与基于RANSAC的背景特征点筛选算法进行了对比。 实验中， 在所有视频中均将2种算法的阈值固定设为1.0。 本文算法得到的$P_e$平均值为$0.32 \%$, 而RANSAC算法筛选的背景特征点$P_e$平均值为$0.36\%$。 \par
 本文提出的特征点算法的一个计算实例如图~\ref{ch5:fig:fpFilter}所示， 其中，红色圆圈标注的为筛选后得到的背景特征点， 蓝色圆圈标注的则为前景特征点，蓝色线连接的为背景点$A$和$\acute{A}$。\par
@@ -191,8 +191,8 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
 
 \section{实验结果与分析}
 \label{ch5:sec:results}
- 通过GPU和CPU的混合编程， 使用C++语言，借助CUDA和OpenCV实现了本文的算法。 其中， 在GPU 上实现了文献~\cite{superpixel}中的超像素分割算法，利用OpenCV提供的GPU实现完成KLT~\cite{KLT}特征点跟踪。 实验中计算机配置为Intel i7 3.5 GHz CPU， NVIDIA GeForce Titan GPU。 为了测试算法的有效性， 在Hopkins视频数据库~\cite{HopKinsDataSet}中测试了本文算法。 该数据库中的视频包含各种复杂相机运动，是移动相机背景减除研究中较为常用的测试数据集。在实验中， 超像素大小约为1600像素， 在估算相机运动时将图像平均分为$8 \times 8$ 共64个单元的网格， 本文对所有测试视频保持同样的参数。\par
-将本文算法与文献~\inlinecite{5.8s,kwak2011Generalized}中的算法进行了比较，部分结果如图~\ref{ch5:fig:comparison}所示。
+ 通过GPU和CPU的混合编程， 使用C++语言，借助CUDA~\cite{CUDA}和OpenCV~\cite{opencv_library}实现了本文的算法。 其中， 在GPU 上实现了文献~\cite{superpixel}中的超像素分割算法，利用OpenCV提供的GPU实现完成KLT~\cite{KLT}特征点跟踪。 实验中计算机配置为Intel i7 3.5 GHz CPU， NVIDIA GeForce Titan GPU。 为了测试算法的有效性， 在Hopkins视频数据库~\cite{HopKinsDataSet}中测试了本文算法。 该数据库中的视频包含各种复杂相机运动，是移动相机背景减除研究中较为常用的测试数据集。在实验中， 超像素大小约为1600像素， 在估算相机运动时将图像平均分为$8 \times 8$ 共64个单元的网格， 本文对所有测试视频保持同样的参数。\par
+将本文算法与文献~\inlinecite{5.8s,kwak2011Generalized}中的算法进行了比较，部分结果如图~\ref{ch5:fig:comparison}所示。图~\ref{ch5:fig:comparison}(a)中分别为Hopkins视频数据库中Cars1视频的第6帧， Cars3 视频的第11帧，Cars8视频的第16帧， People1视频的第19帧和Peopel2视频的第16帧。 图~\ref{ch5:fig:comparison}(b)所示为图~\ref{ch5:fig:comparison}(a)中视频帧的正确前景结果， 图~\ref{ch5:fig:comparison}(c)所示为文献~\inlinecite{kwak2011Generalized}算法的结果， 图~\ref{ch5:fig:comparison}(d)所示为文献~\inlinecite{5.8s}算法结果，  图~\ref{ch5:fig:comparison}(e)所示为本章算法结果。
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.9\textwidth]{ch5/fig5a.png}\\
@@ -209,7 +209,7 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
 \end{figure}
 
 
-图~\ref{ch5:fig:comparison}(a)中分别为Hopkins视频数据库中Cars1视频的第6帧， Cars3视频的第11帧，Cars8视频的第16帧， People1视频的第19帧和Peopel2视频的第16帧。 图~\ref{ch5:fig:comparison}(b)所示为图~\ref{ch5:fig:comparison}(a)中视频帧的正确前景结果， 图~\ref{ch5:fig:comparison}(c)所示为文献~\inlinecite{kwak2011Generalized}算法的结果， 图~\ref{ch5:fig:comparison}(d)所示为文献~\inlinecite{5.8s}算法结果，  图~\ref{ch5:fig:comparison}(e)所示为本章算法结果。 本章采用通用的前景准确度指标，精度P, 召回率R和F值(F-Score, F)来量化评价算法的前景检测准确度。 本文算法与同类实时算法~\cite{5.8s}的部分结果如表~\ref{ch5:tab:comparison}所示。
+ 本章采用通用的前景准确度指标，精度P, 召回率R和F值(F-Score, F)来量化评价算法的前景检测准确度。 本文算法与同类实时算法~\cite{5.8s}的部分结果如表~\ref{ch5:tab:comparison}所示。
 
 \begin{table}[htb]
 
