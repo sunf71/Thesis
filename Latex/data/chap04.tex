@@ -1,6 +1,6 @@
 \chapter{针对移动相机的快速视频背景减除技术}
  \label{ch4:FMCBS}
- 本章对移动相机情况下的视频背景减除技术进行了研究，提出了一种针对移动相机的基于无参数模型的快速视频背景减除算法。该算法主要利用两方面的线索得到视频中准确的前景对象。首先引入最相似变换(as-similar-as-possible warping, ASAPW)方法对相机的运动进行估算和补偿，利用无参数的采样背景模型进行背景建模，利用背景模型这一前景外观线索获得粗略的前景结果。与目前已有的其他方法不同的是，本章所提出的算法不需要计算稠密光流或像素点轨迹等预处理过程，而是通过本章提出的基于超像素种子点的区域增长算法(superpixel-based seeded region growing, SSRG) 将基于稀疏光流的前景线索扩散到整幅图像范围，获得另外一个基于运动线索的粗略前景结果。最后通过基于超像素的马尔可夫随机场(Markov random field, MRF)优化过程对两种线索得到的粗略结果进行优化，最终获得准确的前景。大量实验证明了本章所提出算法的有效性，与目前领先的算法相比本章算法可以得到与之相近的前景准确度；但在计算速度方面，本章所提出的算法要快得多。
+ 本章对移动相机情况下的视频背景减除技术进行了研究，提出了一种针对移动相机的基于无参数模型的快速视频背景减除算法。该算法主要利用两方面的线索得到视频中准确的前景对象。首先引入最相似变形(as-similar-as-possible warping, ASAPW)方法对相机的运动进行估算和补偿，利用无参数的采样背景模型进行背景建模，利用背景模型这一前景外观线索获得粗略的前景结果。与目前已有的其他方法不同的是，本章所提出的算法不需要计算稠密光流或像素点轨迹等预处理过程，而是通过本章提出的基于超像素种子点的区域增长算法(superpixel-based seeded region growing, SSRG) 将基于稀疏光流的前景线索扩散到整幅图像范围，获得另外一个基于运动线索的粗略前景结果。最后通过基于超像素的MRF优化过程对两种线索得到的粗略结果进行优化，最终获得准确的前景。大量实验证明了本章所提出算法的有效性，与目前领先的算法相比本章算法可以得到与之相近的前景准确度；但在计算速度方面，本章所提出的算法要快得多。
 
  \section{研究背景}
  \label{ch4:sec:background}
@@ -126,7 +126,7 @@ $${E}_{d}(\hat{V}) = \sum_{p \notin h}{\parallel\hat{V}_{p}{w}_{p}- \hat{p}\para
  { 将$p$ 添加到 $list$ \;}
 }
 }
- $\hat{m} \leftarrow  arg\min_{m \in list}{\parallel regColor - Color(m) \parallel}$ \;
+ $\hat{m} \leftarrow  \arg\min_{m \in list}{\parallel regColor - Color(m) \parallel}$ \;
  $  mask[\hat{m}] \leftarrow 1, segmented[\hat{m}] \leftarrow 1$ \;
  $dist \leftarrow \parallel regColor - {Color(\hat{m})} \parallel $ \;
  $regColor = \frac {regColor \times regSize + Color(\hat{m})}  {regSize + 1 }$ \;
