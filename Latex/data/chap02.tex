@@ -66,17 +66,17 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \subsection{超像素分割}
 文献\inlinecite{SLIC}提出了一种称为SLIC的超像素分割算法，可以将图像分割为若干个包含多个像素的超像素。SLIC算法的核心是根据像素间距离$D_S$,以$K$-Means方法进行聚类。其中$D_S$由Lab色彩空间距离 ($d_{lab}$)和加权欧几里得空间距离($d_{xy}$)计算得到:
 $$ d_{lab}= \sqrt{(l_k-l_i)^2+(a_k-a_i)^2+(b_k-b_i)^2} $$
-$$d_{xy}=\sqrt{(x_k-x_i)^2+(y_k-y_i)^2}$$
+$$d_{xy}=\sqrt{(x_k-x_i)^2+(y_k-y_i)^2},$$
 \begin{equation}
 \label{equ:slicDistance}
-D_S = d_{lab}+ \frac{m}{S},
+D_S = d_{lab}+ \frac{m}{S}d_{xy},
 \end{equation}
-其中$l_k,l_a,l_b,l_x,l_y$分别为像素$k$的Lab色彩空间颜色值以及二维坐标，m为固定值10，S为初始网格大小。具体的SLIC算法如算法~\ref{alg:SLIC}所示。
+其中$l_k,a_k,b_k,x_k,y_k$分别为像素$k$的Lab色彩空间颜色值以及二维坐标，$m$为固定值10，$S$为初始网格大小。具体的SLIC算法如算法~\ref{alg:SLIC}所示。
 
 \renewcommand{\algorithmcfname}{算法}
 \begin{algorithm}[htb]
 \LinesNumbered
-\KwData {初始网格大小$S$,预期超像素格式$K$,迭代门限$t$}
+\KwData {初始网格大小$S$,邻域大小$n$,预期超像素格式$K$,迭代门限$t$}
 \KwResult {超像素分割结果}
  以网格大小$S$通过均匀网格内的像素采样初始化$K$个超像素中心$C_k = [l_k,a_k,b_k,x_k,y_k]$\;
  在$n \times n$的网格内将各超像素中心点调整到梯度值最小的位置\;
@@ -87,20 +87,21 @@ D_S = d_{lab}+ \frac{m}{S},
     {
         根据公式\ref{equ:slicDistance}将以$C_k$为中心范围为$2S \times 2S $邻域内的最匹配像素归为超像素$k$\;
     }
-    重新计算新的超像素中心以及新中心和老中心之间的$L1$距离$E$\;
+    重新计算新的超像素中心$\acute{C_k}$\;
+    $E = \|\acute{C_K}-C_K\|_{L1}$\;
+    $C_K = \acute{C_K}$\;
  }
  处理超像素被分开的情况\;
 \caption{SLIC超像素分割算法\cite{SLIC}}
 \label{alg:SLIC}
 
 \end{algorithm}
-SLIC算法效率高，超像素分割结果与图像边界较为接近，但其问题在于在$K$-Means聚类过程中可能会出现某些超像素被分开（即超像素内的像素不连续）的情况。为了处理这一问题，还需要进行后期处理。\par
-为了解决上述问题并提高超像素的紧凑性(compactness)，文献~\inlinecite{superpixel}对SLIC算法进行了改进，将距离函数$D_s$修改为：
+SLIC算法效率高，得到的超像素边界与图像中的边缘部分较为接近，其问题在于在$K$-Means聚类过程中可能会出现某些超像素被分开（即超像素内的像素不连续）的情况。为了处理这一问题，SLIC算法在超像素分割结束后还需要进行后期处理。为了解决上述问题并提高超像素的紧凑性(compactness)，文献~\inlinecite{superpixel}对SLIC算法进行了改进，将距离函数$D_s$修改为：
 \begin{equation}
 \label{equ:chap2:NSLIC}
-D_S = (1-\alpha) \bullet d_{rgb} + \alpha \bullet \frac{d_{xy}}{S}
+D_S = (1-\alpha) \cdot d_{rgb} + \alpha \cdot \frac{d_{xy}}{S},
 \end{equation}
-其中，$S$为初始网格大小，$\alpha$为紧凑型因子，文献\cite{superpixel}建议取值为0.9。调整后的距离函数生成的超像素相比于原SLIC算法，紧凑性更好，且不会出现超像素被分开的情况。本章中使用文献\cite{superpixel}提出的公式~\ref{equ:chap2:NSLIC}代替算法~\ref{alg:SLIC}中的公式\ref{equ:slicDistance}进行超像素分割。为了加快速度，在GPU上通过并行编程实现了超像素分割过程。对每个超像素启动一个线程，用于计算和更新超像素中心点的信息，并重新计算边界像素所属的超像素类别。
+其中，$S$为初始网格大小，$d_{rgb}$为RGB颜色空间距离，$\alpha$为紧凑性调整因子，文献\cite{superpixel}建议取值为0.9。调整后的距离函数生成的超像素相比于原SLIC算法紧凑性更好，且不会出现超像素被分开的情况。本章中使用文献\inlinecite{superpixel}提出的公式~\ref{equ:chap2:NSLIC}代替算法~\ref{alg:SLIC}中的公式\ref{equ:slicDistance}进行超像素分割。为了加快速度，通过CUDA~\cite{CUDA}在GPU上通过并行编程实现了超像素分割过程。对每个超像素启动一个线程，用于计算和更新超像素中心点的信息，并重新计算边界像素所属的超像素。
 \subsection{第一阶段合并}
 \label{subsec:mergeP1}
 第一阶段合并只允许相似且相邻的区域进行合并。将区域$i$与区域$j$的合并优先级定义为$PR(i,j)$。计算区域合并的优先级时考虑以下四项因素。
@@ -110,22 +111,22 @@ D_S = (1-\alpha) \bullet d_{rgb} + \alpha \bullet \frac{d_{xy}}{S}
 
     \begin{equation}
     \label{equ:chap2:Pc}
-    P_{c}(i,j)=1-HistogramDist(i,j)
+    P_{c}(i,j)=1-HistogramDist(i,j),
     \end{equation}
-    其中$HistogramDist$为计算直方图巴氏距离的函数,设区域$i,j$的颜色直方图分别为$H_1,H_2$:
-    $$HistogramDist(i,j) = \sqrt{1-\frac{1}{\sqrt{\bar{H_1}\bar{H_2}N^2}}\sum_{i}\sqrt{H_1(I)\bullet H_2(I)}},$$
-    其中$N$为直方图直方图的分块(bin) 数量，$\bar{H_1}$表示平均值。为了提高效率,利用文献~\inlinecite{ChengPAMI}中提的直方图量化方法对图像色彩空间进行简化处理。在保证覆盖图像中$95\%$以上像素颜色的情况下，去掉图像中出现频次较低的颜色，从而减少直方图的分块数量以减少计算量。大部分图像在经过处理后的颜色直方图大约包含1000个左右分块。
+    其中$HistogramDist$为计算直方图巴氏距离的函数,设区域$i,j$的颜色直方图分别为$H_i,H_j,$:
+    $$HistogramDist(i,j) = \sqrt{1-\frac{1}{\sqrt{\bar{H_i}\bar{H_j}N^2}}\sum_{I}\sqrt{H_i(I)\cdot H_j(I)}},$$
+    其中$N$为直方图直方图的分块(bin) 数量，$\bar{H}$表示$H$平均值。为了提高效率 ，利用文献~\inlinecite{ChengPAMI}中提出的直方图量化方法对图像色彩空间进行简化处理。在保证覆盖图像中$95\%$以上像素颜色的情况下，去掉图像中出现频次较低的颜色，从而减少直方图的分块数量以减少计算量。大部分图像在经过处理后的颜色直方图大约包含1000个左右分块。
 \item 边缘保持\par
     图像结构化边缘是反映对象边界的重要信息。为了使区域合并过程不破坏对象的边界，在合并优先级中加入边缘保持项，降低区域间的边界包含图像边缘的区域对的优先级。具体其定义为：
-    $$P_{e}(i,j)=1-\frac{E(i,j)}{\min(borderLen(i),borderLen(j))}$$
-    其中$E(i,j)=\sum_{b\in border(i,j)}Edgeness(b)$,即区域$i$和$j$之间的边界的边缘响应之和, $borderLen(i)$表示区域$i$ 边界的长度（像素数）。本章算法利用文献~\inlinecite{DollarEdge}所提出的算法计算图像的结构化边缘响应，并将其归一化到$[0,1]$之间。
+    $$P_{e}(i,j)=1-\frac{E(i,j)}{\min(borderLen(i),borderLen(j))},$$
+    其中$E(i,j)=\sum_{b\in border(i,j)}Edgeness(b)$，即区域$i$和$j$之间的边界的边缘响应之和，$borderLen(i)$表示区域$i$ 边界的长度（像素数）。对于图像中各像素边缘响应$Edgeness$，本章算法利用文献~\inlinecite{DollarEdge} 所提出的算法计算图像的结构化边缘，并将其归一化到$[0,1]$之间。
 \item 区域空间相关性\par
-    区域的空间相关性指区域在空间上的关联性，对于相邻的区域其相关性定义为$$P_{s}(i,j)=borderLen(i,j)/\min⁡(border(i),border(j))$$，其中 $borderLen(i,j)$表示区域$i$和$j$之间边界的长度。区域空间相关性的几何意义为若两区域之间的边界占比越大，说明两区域在空间关系上关联更紧密，因此合并优先级更高。极限情况下，当区域$i$ 完全包含$j$时$P_{s} (i,j)=1$。
+    区域的空间相关性指区域在空间上的关联性，对于相邻的区域其相关性定义为：
+    $$P_{s}(i,j)=borderLen(i,j)/\min⁡(border(i),border(j)),$$ 其中 $borderLen(i,j)$表示区域$i$和$j$之间边界的长度，$border(i),border(j)$ 分别为区域$i$和$j$的边界长度。 区域空间相关性的几何意义为若两区域之间的边界占比越大，说明两区域在空间关系上关联更紧密，因此合并优先级更高。极限情况下，当区域$i$ 完全包含$j$ 时$P_{s} (i,j)=1$。
 \item 区域面积\par
     为了使区域合并在图像全局范围内进行，对面积较小的区域赋予较大优先级。在合并过程中，图像中那些与周围邻域差距较大的区域因为无法进行合并而产生空洞。在合并时考虑区域面积，可以在一定程度上减少空洞的出现。区域面积项的具体定义为:
-    $$P_{si}=1-(size(i)+size(j))/TotalSize$$
-其中$TotalSize$是图像的总像素数，$size(i),size(j)$表示区域$i,j$的像素数。
-\end{itemize}
+    $$P_{si}=1-(size(i)+size(j))/TotalSize,$$其中$TotalSize$是图像的总像素数，$size(i),size(j)$表示区域$i,j$的像素数。
+\end{itemize}\par
 最终， $PR(i,j)$由上述四项加权平均得到:
 \begin{equation}
    \label{equ:chap2:PR}
@@ -322,12 +323,12 @@ $$ S(I) = \frac{\sum_{i=1}^{P}PropCon(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\s
   \label{fig:chap2:comp2}
 \end{figure}
 为了定量衡量算法的准确性，将显著性检测结果进行二值化后得到的显著性对象与数据集中提供的正确结果进行对比，采用通用的F-Measure值指标来比较算法准确性，其定义为：
-$$F_{\beta} = \frac{(1+\beta^2)Precision \times Recall}{\beta^2 \times Precision + Recall}$$
+$$F_{\beta} = \frac{(1+\beta^2)Precision \times Recall}{\beta^2 \times Precision + Recall},$$
 其中$Precision$为精度，$Recall$表示召回率，$\beta^2=0.3$. \par
 
 在实验中，为了消除二值化阈值对结果的影响，将阈值设定为在0到255之间变化，绘制F-Measure随阈值变化的曲线，见图~\ref{fig:sub:ecssdFCurve}和图~\ref{fig:sub:asdFCurve}，同时图~\ref{fig:sub:ecssdAvg}，~\ref{fig:sub:asdAvg}统计了各方法得到的F-Measure平均值和最大值。通过比较可以看出，本章算法在ECSSD数据集中的F-Measure平均值和最大值略微大于PISA算法，且均优于其他算法， 在ASD数据集中得到的最大F-Measure为0.89， 略低于最高的MC算法(0.91)。 本文算法得到的F-Measure曲线较为扁平， 即F-Measure取值受阈值影响较小， 当阈值门限在128附近时F-Measure可以得到最大值。 比较两个数据集，可以发现ASD数据集中的部分图像背景复杂度较低，因此各算法在ASD数据集上的测试结果均优于ECSSD数据集上的结果。由于本章算法的结果是通过基于超像素的区域合并得到的，显著性值的最小计算单元为超像素，这使得本文算法在ASD数据集中得到的结果的精度要略低于GMR、PISA等算法。 \par
 $MAE$是另一个衡量显著性区域检测结果准确性的指标，其定义为：
-$$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$分别为图像的宽和高，$S$为显著性检测结果，$G$为正确值，两者均归一化在[0,1]之间。MAE值越低说明显著性检测误差越小，图~\ref{fig:MAERst}是各算法MAE值在两个数据库中的比较结果。本章算法在ECSSD数据库中的MAE值同样优于其它算法，在ASD数据库中略高于MAE最低的PISA算法。\par
+$$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|,$$ 其中$W,H$分别为图像的宽和高，$S$为显著性检测结果，$G$为正确值，两者均归一化在[0,1]之间。MAE值越低说明显著性检测误差越小，图~\ref{fig:MAERst}是各算法MAE值在两个数据库中的比较结果。本章算法在ECSSD数据库中的MAE值同样优于其它算法，在ASD数据库中略高于MAE最低的PISA算法。\par
 \begin{figure}[h]
   \centering%
   \subcaptionbox{F-Measure曲线\label{fig:sub:ecssdFCurve}} %标题的长度，超过则会换行，如下一个小图。
@@ -381,7 +382,7 @@ $$MAE=1/(W\times H) \sum_{x=1}^W\sum_{y=1}^H \| S(x,y)-G(x,y)\|$$ ，其中$W,H$
 \subsection{图像分割结果}
 \label{sec:sub:segmentation}
 
-本章所提算法通过区域合并的方式逐渐将图像中相似区域进行合并，在合并过程中可以得到一系列图像分割结果。这些图像分割结果可以为显著性前景检测，对象定位等应用提供重要线索。在本节中，将本章算法与其它图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}进行比较。在实验中，将图像分割目标设为10。利用各算法进行图像分割时有时不能保证正好得到10个区域，这时选取最接近目标的分割结果作为最终结果。一个好的图像分割算法可以将感兴趣区域其中在一个区域，并且与背景区域分开。如果分割结果所包含的区域过多则包含较多冗余信息，过少则会使得前景区域合并到背景区域中，无法准确提取显著性对象。因此实验中将分割目标设为10左右，基本能同时满足简化图像结构以及保持显著性对象边界的目标。\par
+本章所提算法通过区域合并的方式逐渐将图像中相似区域进行合并，在合并过程中可以得到一系列图像分割结果。这些图像分割结果可以为显著性前景检测，对象定位等应用提供重要线索。在本节中，将本章算法与其它图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}进行比较。在实验中，将图像分割目标设为10。利用各算法进行图像分割时有时不能保证正好得到10个区域，这时选取最接近目标的分割结果作为最终结果。一个好的图像分割算法可以将感兴趣区域集中在一个区域，并且与背景区域分开。如果分割结果所包含的区域过多则包含较多冗余信息，过少则会使得前景区域合并到背景区域中，无法准确提取显著性对象。因此实验中将分割目标设为10左右，基本能同时满足简化图像结构以及保持显著性对象边界的目标。\par
 实验中部分比较结果如图~\ref{fig:segCom}所示，其中(a)列图像为输入图像，(b)-(e)列分别为SRM、文献~\inlinecite{Xiao2015Complexity}、Mean Shift~\cite{MeanShift}，以及本章算法的分割结果。通过比较可以看出，本章算法的分割结果基本上能够避免将前景对象合并到背景中。而其它图像分割算法均存在将前景对象合并到背景中的情况。主要原因在于这些图像区域分割算法~\cite{Richard2004Statistical,Xiao2015Complexity,MeanShift}在分割时没有考虑到分割过程中不同阶段的特点，始终以同样的策略进行区域合并。另外，在合并过程中没有对遮挡和空洞等情况进行特殊处理。\par
 综上所述，本章提出的显著性引导的区域合并算法能够在图像分割过程中较好的保持前景对象的边界，避免其合并到背景区域；同时经过遮挡和空洞处理后，背景区域也可以合并到一起降低了复杂度，有助于显著性前景的提取。
 \begin{figure}[htb]

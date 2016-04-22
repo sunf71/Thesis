@@ -3,7 +3,7 @@
  本章针对图像填充问题进行了研究，提出了一种基于样本的快速图像填充算法。为了使填充后的图像保持图像原有的结构信息，该算法以由粗到精的方式对图像中的缺失部分进行两次填充。在第一次填充时，首先利用离散小波变换(DWT)对输入图像进行预处理。利用DWT 的特点，提取低频子带下的低分辨率图像。利用基于样本的填充方法在此低分辨率图像上进行填充。由于低分辨率图像中的高频细节部分已经被去掉，因此第一遍填充的图像的纹理和大部分结构信息都恢复得不错，但是在包含边界的局部区域还存在着一些瑕疵。为了解决这一问题，对原图像进行第二次填充，在这次填充时只处理包含边缘结构信息的部分，使得这部分区域的结构信息能够与图像的其他部分保持连续性。为了提高图像填充的速度，提出以动态搜索窗口结合分块结构测试的方式来搜索最佳匹配块。实验结果证明，本章提出的算法在处理缺失部分面积大的待填充图像时可以较好的保持图像结构上的连续性，达到了与当前领先算法相近的效果，并且在速度上明显优于这些算法。
  \section{研究背景}
  \label{ch3:sec:background}
- 图像填充问题的主要困难在于保证图像中填充后的区域在内容和结构上与周围区域保持连续性以及提高填充算法的效率。相比而言，基于样本的算法在处理结构连续性方面更好。基于样本的算法的出发点是以方形分块为单位利用图像中已知区域中的一个或多个最佳匹配分块来填充图像中缺失部分的像素。Criminisi等人~\cite{Criminisi04regionfilling}提出了一种基于未知区域边界法线辐射度方向计算填充优先级算法，使得未知区域以一种类似``剥洋葱皮''的顺序进行填充。虽然该算法在一些缺失部分以纹理区域为主的图像中取得了不错的效果，但是对于缺失部分包含明显图像边缘等结构信息的情况却效果不佳。如图~\ref{fig:criminisi}所示，图~\ref{fig:criminisi:1}是待处理图像，其中黑色区域为缺失部分，图~\ref{fig:criminisi:2}为文献~\inlinecite{Criminisi04regionfilling} 中算法的处理结果。可以看出，填充后的三角形金字塔尖并没有恢复，填充结果存在明显的不连续情况。Xu等人~\cite{Xu:2010}指出 为了保持结构部分的连续性，应该优先填充那些包含结构信息的分块。对于图~\ref{fig:criminisi:1}中的未知区域，金字塔部分具有明显的边缘结构信息，而天空部分则为平坦的纹理区域。如果在填充时优先填充金字塔部分然后在填充天空部分，则可以避免用包含金字塔部分的分块去填充天空部分。\par
+ 图像填充问题的主要困难在于保证图像中填充后的区域在内容和结构上与周围区域保持连续性以及提高填充算法的效率。相比而言，基于样本的算法在处理结构连续性方面更好。基于样本的算法的出发点是以方形分块为单位利用图像中已知区域中的一个或多个最佳匹配分块来填充图像中缺失部分的像素。Criminisi等人~\cite{Criminisi04regionfilling}提出了一种基于未知区域边界法线辐射度方向计算填充优先级算法，使得未知区域以一种类似``剥洋葱皮''的顺序进行填充。虽然该算法在一些缺失部分以纹理区域为主的图像中取得了不错的效果，但是对于缺失部分包含明显图像边缘等结构信息的情况却效果不佳。如图~\ref{fig:criminisi}所示，图~\ref{fig:criminisi:1}是待处理图像，其中黑色区域为缺失部分，图~\ref{fig:criminisi:2}为文献~\inlinecite{Criminisi04regionfilling} 中算法的处理结果。可以看出，填充后的三角形金字塔尖并没有恢复，填充结果存在明显的不连续情况。Xu 等人~\cite{Xu:2010}指出 为了保持结构部分的连续性，应该优先填充那些包含结构信息的分块。对于图~\ref{fig:criminisi:1}中的未知区域，金字塔部分具有明显的边缘结构信息，而天空部分则为平坦的纹理区域。如果在填充时优先填充金字塔部分然后在填充天空部分，则可以避免用包含金字塔部分的分块去填充天空部分。\par
  \begin{figure}[htb]
    \centering%
    \subcaptionbox{输入图像\label{fig:criminisi:1}} %标题的长度，超过则会换行，如下一个小图。
@@ -14,23 +14,33 @@
    \caption{文献~\inlinecite{Criminisi04regionfilling}算法失败例子}
    \label{fig:criminisi}
  \end{figure}
- 在基于样本的图像填充算法中，由于像SSD这样的分块相似性度量指标的计算复杂度为$O(N^2)$，且搜索空间为图像全部已知区域，寻找每个缺失部分分块的最佳匹配块是一项非常耗时的工作。对于中等大小的图像，一些算法~\cite{Xu:2010}需要几分钟的时间来处理，这其中大部分时间用于分块的比较和搜索上。在实时或在线图像编辑等实际应用中，用户一般无法忍受超过1分钟的处理时间。\par
+ 在基于样本的图像填充算法中，由于像均方差之和(sum of squared differences,SSD)这样的分块相似性度量指标的计算复杂度为$O(N^2)$，且搜索空间为图像全部已知区域，寻找每个缺失部分分块的最佳匹配块是一项非常耗时的工作。对于中等大小的图像，一些算法~\cite{Xu:2010}需要几分钟的时间来处理，这其中大部分时间用于分块的比较和搜索上。在实时或在线图像编辑等实际应用中，用户一般无法忍受超过1分钟的处理时间。\par
  针对以上两方面的问题，本章提出利用基于分块梯度结构张量(gradient structure tensor,GST)来确定填充顺序，保持填充后图像的结构连续性。为了提高算法速度，提出了一种高效的分块结构测试方法对分块进行结构相似性度量，当分块间的结构信息存在较大差距时可以直接判为不匹配分块，减少冗余的SSD 计算。同时，为了减少最佳匹配块的搜索范围，提出了一种动态搜索窗口算法，利用图像的连续性减少搜索范围。在分块匹配时，提出用加权SSD代替SSD，以改进分块间的匹配度。
  \section{相关工作}
  \label{ch3:sec:related}
-针对文献~\inlinecite{Criminisi04regionfilling}算法无法处理包含结构信息的大面积缺失区域的情况，文献~\inlinecite{Xu:2010}提出 了一种基于分块结构稀疏性的填充算法。该算法利用分块结构稀疏性来确定填充优先级，优先填充那些结构稀疏性强的分块；在填充时通过多个候选分块的系数线性组合来计算未知区域像素值。假设$\Psi_p$是未知区域轮廓$\partial\Omega$上的一个分块，其邻域分块$\Psi_{p_{j}}$为位于以$\Psi_p$的中心点$p$为中心的窗口$N(p)$范围内的已知区域分块。$\Psi_{p_{j}}$的中心点$p_j$的集合定义为:
-$$N_s(p)=\{p_j:p_j \in N(p) , \Psi_{p_{j}} \subset \hat{\Omega}\}$$。对于分块$\Psi_p$，其分块结构稀疏度定义为：
-\begin{equation}\label{ch3:equ:sparsity}
-\rho(p)=\|\vec{\omega_p}\|_{L_2}\sqrt{\frac{|N_s(p)|}{|N(p)|}}
+针对文献~\inlinecite{Criminisi04regionfilling}算法无法处理包含结构信息的大面积缺失区域的情况，文献~\inlinecite{Xu:2010}提出 了一种基于分块结构稀疏性的填充算法。该算法利用分块结构稀疏性来确定填充优先级，优先填充那些结构稀疏性强的分块；在填充时通过多个候选分块的系数线性组合来计算未知区域像素值。假设$\Psi_p$是中心点位于未知区域$\Omega$的轮廓$\partial\Omega$上的一个分块，其邻域分块$\Psi_{p_{j}}$为位于以$\Psi_p$的中心点$p$为中心的窗口$N(p)$范围内的已知区域$\hat{\Omega}$内分块。$\Psi_{p_{j}}$的中心点$p_j$的集合定义为:
+$$N_s(p)=\{p_j:p_j \in N(p) , \Psi_{p_{j}} \subset \hat{\Omega}\}.$$
+假设$P$为提取分块$\Psi_p$中未知像素的矩阵，而$\bar{P}$为提取其中已知像素的矩阵，分块$\Psi_p$与$\Psi_{p_j}$的相似度定义为：
+$$\omega_{p,p_j}=\frac{1}{Z(p)}\exp(-\frac{d(\bar{P}\Psi_p,\bar{P}\Psi_{p_j})}{\sigma^2}),$$
+其中$d(\cdot,\cdot)$表示SSD计算，$Z(p)$为归一化因子使得$\sum_{p_j \in N_s(p)}\omega_{p,p_j} = 1$，$\|\cdot\|_{L_2}$表示2范数，$\sigma$为常数5.0。对于分块$\Psi_p$，其分块结构稀疏度定义为：
+\begin{equation}
+\label{ch3:equ:sparsity}
+\rho(p)=\|\vec{\omega_p}\|_{L_2}\sqrt{\frac{|N_s(p)|}{|N(p)|}},
 \end{equation}
 
-其中，$\vec{\omega_p}$为$N_s(p)$内分块之间的相似度矢量，$|\cdot|$表示所包含元素的个数。从公式~\ref{ch3:equ:sparsity}可以看出，当分块包含边缘、角点等边缘信息时，邻域内分块的相似性越差从而造成分块的结构稀疏度越大；而当邻域内主要为纹理信息时，分块之间的相似度越高使得分块结构稀疏度越小。基于分块稀疏度，文献~\cite{Xu:2010}定义分块填充优先级为：
-$$P(p) = T_{[\zeta,1]}(\rho(p)) \times C(p) 。$$
-其中，$C(p)$为文献~\inlinecite{Criminisi04regionfilling}算法中定义的可靠性项，$T_{[\zeta,1]}(\rho(p))$为线性变换使得$\zeta \leqslant \rho(p) \leqslant 1$, $\zeta$ 为常量0.2。在填充时，文献~\inlinecite{Xu:2010}算法利用$N$个最相似分块$\Psi_q$的线性组合来填充未知区域的像素：
-$$\hat{\Psi_p}= \sum_{q=1}^{N}{ \alpha_q \Psi_q}, P(\Psi_p) = P(\hat{\Psi_{p}}) 。$$\par
+公式\ref{ch3:equ:sparsity}中，$\vec{\omega_p}$为$N_s(p)$内分块之间的相似度矢量$\omega_{p,p_j}(p_j \in N_s(p))$，$|\cdot|$表示所包含元素的个数。从公式~\ref{ch3:equ:sparsity}可以看出，当分块包含边缘、角点等边缘信息时，邻域内分块的相似性越差从而造成分块的结构稀疏度越大；而当邻域内主要为纹理信息时，分块之间的相似度越高使得分块结构稀疏度越小。基于分块稀疏度，文献~\inlinecite{Xu:2010}定义分块填充优先级为：
+$$P(p) = T_{[\zeta,1]}(\rho(p)) \times C(p),$$
+其中，$T_{[\zeta,1]}(\rho(p))$为线性变换使得$\rho(p)$从原来的范围$[\sqrt{1/|N(P)|},\sqrt{|N_s(p)|/|N(p)|}]$变换到$[\zeta,1]$, $\zeta$ 为常量0.2，$C(p)$为文献~\inlinecite{Criminisi04regionfilling}算法中定义的可靠性项:
+\begin{equation}
+\label{ch3:equ:confidence}
+C(p)=\frac{\sum_{q\in\Psi_p\bigcap\overline{\Omega}}{C(q)}}{\left\vert{\Psi_p}\right\vert},
+\end{equation}
+其中$C(q)$为像素$q$的可靠性，未知像素初始化为0，已知像素初始化为1，\(\left\vert.\right\vert\)  表示计算分块中的像素数。在填充时，文献~\inlinecite{Xu:2010}算法利用$N$个最相似分块$\Psi_q$的线性组合来填充未知区域的像素：
+$$\hat{\Psi_p}= \sum_{q=1}^{N}{ \alpha_q \Psi_q}, $$
+$$P\Psi_p = P\hat{\Psi_{p}}$$ \par
 文献\inlinecite{LeMeur_2011}提出利用GST来确定分块的填充优先级。与文献~\inlinecite{Criminisi04regionfilling}中的填充优先级一样，文献\inlinecite{LeMeur_2011}算法中优先级由可靠性项和数据项组成，数据项定义为：
-$$ D(p) = \alpha + (1-\alpha)\exp(-\frac{C}{(\lambda_1 - \lambda_2)^2})$$
-其中$\lambda_1,\lambda_2$为图像GST的两个特征值。在填充时，文献\inlinecite{LeMeur_2011}算法利用自适应的$K$个最相似块的线性组合来计算未知区域像素。\par
+$$ D(p) = \alpha + (1-\alpha)\exp(-\frac{C}{(\lambda_1 - \lambda_2)^2}),$$
+其中$\lambda_1,\lambda_2$为图像GST的两个特征值，其计算方法见\ref{sec:sub:GST}节，$\alpha$和$C$为常数，分别为0.01和8.0。在填充时，文献\inlinecite{LeMeur_2011}算法利用自适应的$K$个最相似块的线性组合来计算未知区域像素。\par
 文献~\inlinecite{kwokFast}提出基于DCT的快速填充算法，该算法利用DCT将图像转换到频域，通过主元分析(PCA)选择部分重要系数来进行SSD计算，从而提高效率。此外该算法还提出了一种基于梯度的预填充算法，对未知区域进行预估以方便后续的DCT计算。通过搜索数组数据结构，文献~\inlinecite{kwokFast}的算法可以在GPU上通过并行编程实现。在预填充时，假设分块内每个像素的梯度为零，那么根据前向和后向差分，在水平和垂直方向上，每个像素可以列出4个方程，使得方程数量大于未知像素数量，通过最小二乘法可以获得超定方程的最优解，使得已知区域的梯度值获得最小值。 \par
 文献\inlinecite{LeMeur:2012}指出，去掉高频细节后的低分辨率图像与原图像相比要更容易完成填充，并且其填充速度与原图像相比有巨大优势。因此文献\inlinecite{LeMeur:2012}提出的填充算法首先在低分辨率下图像填充，完成后再通过超分辨率算法，将图像还原到原分辨率。\par
 与上述算法不同，文献\inlinecite{Barnes:2009}提出了一种随机的图像块匹配算法，PatchMatch。该算法的目标是在两幅图像中建立每个分块的最接近邻居场(nearest-neighbor field, NNF)。在初始化阶段，该算法通过随机值来估算每个分块的NNF值$f(x,y)$。然后通过迭代过程中的随机搜索结果对匹配结果进行更新和优化。算法的主要过程如图~\ref{ch3:fig:patchmatch}所示。每次迭代时，根据从左至右，从上至下的扫描顺序进行。假设$D(\textbf{v})$为图像$A$中$(x,y)$处的分块与图像$B$中$(x,y)+ \textbf{v} $处分块之间的距离，在更新时，$f(x,y) = \arg \min\{D(f(x,y)),D(f(x-1,y)),D(f(x,y-1))\}$。通过这种传递方式， 假如$(x,y)$处有正确的匹配，那么在局部区域$R$内所有在$(x,y)$附近的邻居都将获得这一信息而找到对应的匹配块。在迭代过程中，根据随机搜索过程不断优化 $f(x,y)$ 。假设 $ \mathbf{{v_{0}}}= f(x,y)$，在随机搜索中通过测试一系列候选分块来优化$f(x,y)$。具体的搜索策略为：
@@ -52,33 +62,36 @@ $$ \mathbf{u_i} = \mathbf{v_0} + w\alpha^{i}\mathbf{R_{i}}$$
 \end{figure}
  \section{算法描述}
  \label{ch3:sec:algorithm}
- 设输入图像\emph{I} 中包含未知区域 \(\Omega\) 已经已知区域 \(\overline{\Omega}\)，本章提出的基于样本的图像填充算法的目标是通过\(\overline{\Omega}\)的信息来计算 \(\Omega\)。和其他经典的基于样本的填充算法一样，本章所提算法的主要任务是确定填充优先级以及寻找最佳匹配块。
+ 设输入图像\emph{I} 中包含未知区域 \(\Omega\)和已知区域 \(\overline{\Omega}\)，本章提出的基于样本的图像填充算法的目标是通过\(\overline{\Omega}\)的信息来计算 \(\Omega\)。和其他经典的基于样本的填充算法一样，本章所提算法的主要任务是确定填充优先级以及寻找最佳匹配块。
  \subsection{基于GST的填充优先级}
  \label{sec:sub:GST}
 
- 定义未知区域\(\Omega\) 的轮廓为 \(\partial\Omega\), 对于 \(\partial\Omega\)上的每个像素\(p\)，将以\(p\)为中心的分块\(\Psi_p\)的填充优先级定义为：
+ 定义未知区域\(\Omega\) 的边界轮廓为 \(\partial\Omega\), 对于 \(\partial\Omega\)上的每个像素\(p\)，将以\(p\)为中心的分块\(\Psi_p\)的填充优先级定义为：
  \begin{equation}
     \label{equ:chap3:order}
     P(p)=C(p)\times D(p)
  \end{equation}
 
- 其中 \(C(p)\) 表示可靠性项\cite{Criminisi04regionfilling}，具体定义为： $$C(p)=\frac{\sum_{q\in\Psi_p\bigcap\overline{\Omega}}{C(q)}}{\left\vert{\Psi_p}\right\vert}，其中$$\(\left\vert.\right\vert\)  表示计算分块中的像素数。 引入\(C(p)\) 的目的在于让那些包含更多已知像素的区域获得更高的优先级。公式~\ref{equ:chap3:order}中\(D(p)\) 是数据项，主要评估分块中包含结构信息的情况，增加那些包含较多结构信息分块的填充优先级。Xu等人\cite{Xu:2010}和文献\inlinecite{LeMeur_2011}分别提出了不同的\(D(p)\) 计算方法。本章中提出了一种基于GST 的方法。由于GST可以很好的描述图像的结构信息以及梯度方向，已经被广泛运用于图像处理领域\cite{Kothe03edgeand}。 \par
+ 公式~\ref{equ:chap3:order}中 \(C(p)\) 表示可靠性项\cite{Criminisi04regionfilling}，具体定义见公式~\ref{ch3:equ:confidence}。 引入\(C(p)\) 的目的在于让那些包含更多已知像素的区域获得更高的优先级。公式~\ref{equ:chap3:order} 中\(D(p)\) 是数据项，主要评估分块中包含结构信息的情况，增加那些包含较多结构信息分块的填充优先级。Xu等人\cite{Xu:2010}和文献\inlinecite{LeMeur_2011}分别提出了不同的\(D(p)\) 计算方法。本章中提出了一种基于GST 的方法。由于GST 可以很好的描述图像的结构信息以及梯度方向，已经被广泛运用于图像处理领域\cite{Kothe03edgeand}。 \par
   对于图像\(I\), 其GST定义为:
-  $$T=\left(\begin{array}{cc}T_{11} & T_{12} \\ T_{21} &T_{22}\end{array}\right)=\left(\begin{array}{cc}\overline{I_{\sigma,x}^2} & \overline{I_{\sigma,x}I_{\sigma,y}} \\ \overline{I_{\sigma,x}I_{\sigma,y}} & \overline{I_{\sigma,y}^2}\end{array}\right),$$
-  其中 \(I_{\sigma,x}\) 和 \(I_{\sigma,y}\) 分别为图像在水平方向和垂直方向上的梯度 ，\(\overline{X}\) 表示高斯核函数\(G_{\hat{\sigma}}\) 与 \(X\)的卷积。 \(T\) 的特征值 \(\lambda_1\) 和 \(\lambda_2\) 可以反映图像所包含的结构信息情况。在包含较强边缘信息的区域有 \(\lambda_1>\lambda_2\approx0\) ，而在不含边缘的平坦区域则有\(\lambda_1\approx\lambda_2\approx0\)。 \( \lambda_{1,2} \) 可以通过下式计算: $$\lambda_{1,2}=\frac{1}{2}\left(T_{11}+T_{22}\pm\sqrt{\left(T_{11}-T_{22}\right)^2+4T^2_{12}}\right)$$
+  $$T=\left(\begin{array}{cc}T_{11} & T_{12} \\ T_{21} &T_{22}\end{array}\right)=\left(\begin{array}{cc}\overline{I_{\sigma,x}^2} & \overline{I_{\sigma,x}}\cdot\overline{I_{\sigma,y}} \\ \overline{I_{\sigma,x}}\cdot\overline{I_{\sigma,y}} & \overline{I_{\sigma,y}^2}\end{array}\right),$$
+  其中 \(I_{\sigma,x}\) 和 \(I_{\sigma,y}\) 分别为图像经过标准差$\sigma$的高斯滤波后在水平方向和垂直方向上的梯度，\(\overline{I_{\sigma,x}}=I_{x,\sigma}*I, \overline{I_{\sigma,y}}=I_{y,\sigma}*I\)，其中$*$ 表示卷积运算。
+   \(T\) 的特征值 \(\lambda_1\) 和 \(\lambda_2\) 可以反映图像所包含的结构信息情况。在包含较强边缘信息的区域有 \(\lambda_1>\lambda_2\approx0\) ，而在不含边缘的平坦区域则有\(\lambda_1\approx\lambda_2\approx0\)。 \( \lambda_{1,2} \) 可以通过下式计算: $$\lambda_{1,2}=\frac{1}{2}\left(T_{11}+T_{22}\pm\sqrt{\left(T_{11}-T_{22}\right)^2+4T^2_{12}}\right)$$
   其所包含结构的方向信息可以通过下式计算:
- $$\phi=\frac{1}{2}\arctan{\left(\frac{2T_{12}}{T_{11}-T_{22}}\right)}$$
- 为了评估每个分块中是否包含结构信息已经结构的方向信息，文献\inlinecite{LeMeur_2011}提出计算分块中心点的GST。为了得到区域内更为准确的结构信息，本章算法提出计算分块内所有已知像素的GST，并对结果进行直方图统计。该直方图 \(H\) 以分块内包含的结构方向作为直方图分块依据，统计区域内已知像素的结构能量 \(\lambda_1\)。相比于文献\inlinecite{LeMeur_2011}的方法，本章算法得到的是整个分块的结构信息，比文献\inlinecite{LeMeur_2011}只计算分块中心点的GST的方法更鲁棒。在本章算法中\(H\) 的大小(直方图中Bin的数量)为12。定义分块结构能量(patch structure energe, PSE):
- $$P_e\left(p\right)=Max\left(Sum_{b\in{H\left(p\right)}}\left(b\right)\right)$$, 其中\(H\left(p\right)\) 表示结构能量直方图。 对于图像\(I\) , 公式~\ref{equ:chap3:order} 中的数据项定义为:
- $$D(p)=(1-\alpha)P_e(p)/max_{q\in{I}}(P_e(q))+\alpha,$$ 其中 \(\alpha\) 是一个线性变换因子，使得\(D(p)\in{[\alpha,1]}\)。加入\(\alpha\) 的目的是使得数据项的值接近于可靠性项值。在本章算法中，按照文献\inlinecite{Xu:2010} 中的建议将\(\alpha\)设为固定值0.2。
+ $$\phi=\frac{1}{2}tan^{-1}{\left(\frac{2T_{12}}{T_{11}-T_{22}}\right)}$$
+ 为了评估每个分块中是否包含结构信息以及结构的方向信息，文献\inlinecite{LeMeur_2011}提出计算分块中心点的GST。为了得到区域内更为准确的结构信息，本章算法提出计算分块内所有已知像素的GST，并对结果进行直方图统计。该直方图 \(H\) 以分块内包含的结构方向作为直方图分块依据，统计区域内已知像素的结构能量 \(\lambda_1\)。相比于文献\inlinecite{LeMeur_2011} 的方法，本章算法得到的是整个分块的结构信息，比文献\inlinecite{LeMeur_2011}只计算分块中心点的GST的方法更鲁棒。在本章算法中\(H\) 的大小(直方图中Bin的数量)为12。定义分块结构能量(patch structure energe, PSE):
+ $$P_e\left(p\right)=Max\left(Sum_{b\in{H\left(p\right)}}\left(b\right)\right),$$ 
+ 其中\(H\left(p\right)\) 表示结构能量直方图。 对于图像\(I\) , 公式~\ref{equ:chap3:order} 中的数据项定义为:
+ $$D(p)=(1-\alpha)P_e(p)/max_{q\in{I}}(P_e(q))+\alpha,$$ 
+ 其中 \(\alpha\) 是一个线性变换因子，使得\(D(p)\in{[\alpha,1]}\)。加入\(\alpha\) 的目的是使得数据项的值接近于可靠性项值。在本章算法中，按照文献\inlinecite{Xu:2010} 中的建议将\(\alpha\)设为固定值0.2。
  \subsection{加权SSD}
  \label{sec:sub:WSSD}
- 为了寻找样本分块\(\Psi_p\)的最佳匹配块，Criminisi等人\cite{Criminisi04regionfilling}借助于两个分块间已知像素的SSD类评估分块间的相似性。待填充分块\(\Psi_p\)的最佳匹配块定义为
+ 为了寻找样本分块\(\Psi_p\)的最佳匹配块，Criminisi等人\cite{Criminisi04regionfilling}借助于两个分块间已知像素的SSD 类评估分块间的相似性。待填充分块\(\Psi_p\)的最佳匹配块定义为
  \begin{equation}
  \label{equ:cha03:bestmatch}
- \Psi_{\hat{q}}= \arg \min_{\Psi_q\in\Phi}d(K(\Psi_p),K(\Psi_q))
+ \Psi_{\hat{q}}= \arg \min_{\Psi_q\in\Phi}d(\bar{P}\Psi_p,\bar{P}\Psi_q)
  \end{equation}
- 其中，\(d(.,.)\) 表示计算两个分块之间的 SSD ， \(K\)表示提取分块内的已知像素的操作 ， \(\Phi\)表示搜索范围。实际上，仅仅依靠分块已知区域的SSD是无法保证找到的最佳匹配快都是最合适用于填充的分块。例如，如图~\ref{cha03:fig:1} 所示，蓝色的分块为待填充分块，绿色分块为用公式~\ref{equ:cha03:bestmatch}计算得到的最佳匹配块。在图~\ref{cha03:fig:1}左边部分图像中绿色的分块中包含了栏杆，而待填充分块主要是草地；右边部分图像中绿色分块中包含了部分树枝区域，而蓝色的待填充区域主要是天空背景。假如利用绿色分块的对应像素对蓝色分块进行填充会导致将错误的结构信息填充到未知区域，造成最终的填充结果出现明显的不连续现象。在一些情况下仅靠分块已知区域的SSD 不能找到合适的最佳匹配块对缺失部分进行填充。
+ 其中，\(d(.,.)\) 表示计算两个分块之间的 SSD ， \(\bar{P}\)表示提取分块内的已知像素的矩阵 ， \(\Phi\)表示搜索范围，具体定义见~\ref{sec:subsub:dynamicSearch}节。实际上，仅仅依靠分块已知区域的SSD是无法保证找到的最佳匹配快都是最合适用于填充的分块。例如，如图~\ref{cha03:fig:1} 所示，蓝色的分块为待填充分块，绿色分块为用公式~\ref{equ:cha03:bestmatch}计算得到的最佳匹配块。在图~\ref{cha03:fig:1} 左边部分图像中绿色的分块中包含了栏杆，而待填充分块主要是草地；右边部分图像中绿色分块中包含了部分树枝区域，而蓝色的待填充区域主要是天空背景。假如利用绿色分块的对应像素对蓝色分块进行填充会导致将错误的结构信息填充到未知区域，造成最终的填充结果出现明显的不连续现象。在一些情况下仅靠分块已知区域的SSD 不能找到合适的最佳匹配块对缺失部分进行填充。
  \begin{figure}[!htbp]
  	\begin{center}
  			\includegraphics[width=0.8\columnwidth]{ch3/fig1.jpg}
@@ -86,17 +99,18 @@ $$ \mathbf{u_i} = \mathbf{v_0} + w\alpha^{i}\mathbf{R_{i}}$$
      \caption{使用已知分块内SSD搜索造成错误匹配情况}
  	\label{cha03:fig:1}
  \end{figure}
- 在文献 \inlinecite{kwokFast}中，提出了一种基于梯度的预填充方法，对待填充分块内的未知像素进行估计。基于同样的预处理方法，文献\inlinecite{jemi:2011}提出使用已知和未知区域的加权SSD (weighted SSD，WSSD)来寻找最佳匹配块。该算法的预填充算法假设未知区域内的像素梯度值为零。基于这一假设，未知区域的像素颜色值可以通过梯度方程的最小二乘法来求解。然而，实际应用中图像较难满足梯度值为零这一假设。这这种预处理方法只考虑了分块内的局部梯度信息，最终的预处理结果并不明显。 Xu等人\cite{Xu:2010}指出，待填充分块内新填充的像素应该与周围分块保持颜色一致性和连续性。基于这一思路，本章提出了一种新的预处理方法。
+ 在文献 \inlinecite{kwokFast}中，提出了一种基于梯度的预填充方法，对待填充分块内的未知像素进行估计。基于同样的预处理方法，文献\inlinecite{jemi:2011}提出使用已知和未知区域的加权SSD (weighted SSD，WSSD)来寻找最佳匹配块。该算法的预填充算法假设未知区域内的像素梯度值为零。基于这一假设，未知区域的像素颜色值可以通过梯度方程的最小二乘法来求解。然而，实际应用中图像较难满足梯度值为零这一假设。这种预处理方法只考虑了分块内的局部梯度信息，最终的预处理结果并不明显。 Xu等人\cite{Xu:2010}指出，待填充分块内新填充的像素应该与周围分块保持颜色一致性和连续性。基于这一思路，本章提出了一种新的预处理方法。
  为了方便比较，本章中使用与文献\inlinecite{Xu:2010}一致的符号标识。假设 \(N(p)\) 为中心点在\(p\)的邻域窗口，集合\(N_s(p)\)定义为：
  $$N_s(p)= \left\{ p_j:p_j \in N(p),\Psi_{p_j} \subset \overline{\Omega} \right\}.$$
  分块 \(\Psi_p\) 和\(\Psi_{p_j}\)  之间的相似性定义为：
- $$\omega_{p,p_{j}}=\frac{1}{Z(p)}\exp\left(-\frac{d(K(\Psi_p),K(\Psi_{p_j}))}{\sigma^2\left|K(\Psi_p)\right|}\right)$$
- 其中 \(Z(p)\) 为归一化因子使得 $$\sum_{p_j\in N_s(p)}\omega_{p,p_j} = 1$$ ， \(\sigma\) 为固定值5.0 \cite{Xu:2010}.\par
- 令运算符\(U\) 表示从分块中提取未知像素，分块 \(\Psi_p\) 中的未知像素的预填充为
- $$U(p)=U\left(\sum_{p_j \in N_s(p)}{\omega_{p,p_j}\Psi_{p_j}}\right)$$\par
+ $$\omega_{p,p_{j}}=\frac{1}{Z(p)}\exp\left(-\frac{d(\bar{P}\Psi_p,\bar{P}\Psi_{p_j})}{\sigma^2\left|\bar{P}\Psi_p\right|}\right),$$
+ 其中 \(Z(p)\) 为归一化因子使得 $\sum_{p_j\in N_s(p)}\omega_{p,p_j} = 1$ ，
+\(\sigma\) 为固定值5.0 \cite{Xu:2010}。\par
+ 分块 \(\Psi_p\) 中的未知像素的预填充为：
+ $$P\Psi_p=P\left(\sum_{p_j \in N_s(p)}{\omega_{p,p_j}\Psi_{p_j}}\right)$$
  为了寻找待填充分块的最佳匹配块, 本章提出以WSSD的方式来评估分块之间的相似性：
  \begin{equation}
- W(\Psi_p,\Psi_{p_j})=\beta\times d(K(\Psi_p),K(\Psi_{p_j}))+(1-\beta)\times d(U(\Psi_p),U(\Psi_{p_j}))
+ W(\Psi_p,\Psi_{p_j})=\beta\times d(\bar{P}\Psi_p,\bar{P}\Psi_{p_j})+(1-\beta)\times d(P\Psi_p,P\Psi_{p_j})
  \label{chap03:equ:wssd}
  \end{equation}
  其中加权系数 \(\beta\) 为已知区域的权值，从公式~\ref{chap03:equ:wssd}中可看出WSSD综合考虑了分块未知区域和已知区域的信息。由于未知区域是通过预填充算法估算的，因此加权系数\(\beta\)的值应该大于0.5，以使得已知部分的权值更大。在本章算法中 \(\beta\)的值建议范围为$[0.8, 0.9]$。 综上所述，分块\(\Psi_p\) 的最佳匹配块定义为：
@@ -110,7 +124,7 @@ $$ \mathbf{u_i} = \mathbf{v_0} + w\alpha^{i}\mathbf{R_{i}}$$
  在~\ref{sec:sub:GST}节中，分块GST直方图被用于描述分块的结构信息。对于相似的分块，他们之间的SSD会相对较小，因此他们一定包含相似的结构信息。例如，同为不包含结构信息的两块纹理信息为主的分块，或者同为包含垂直方向边缘结构信息的分块等。对于这些相似的分块，他们的分块直方图分布也会比较相似。假如两个分块\(\Psi_p\) 、\(\Psi_q\) 的GST直方图分别为 \(H(p)\) 和 \(H(q)\)，本章算法将他们之间的分块结构距离(patch structure distance, PSD)定义为\(H(p)\) 和\(H(q)\)之间的相关系数，即：
 
  $$PSD(p,q)=\frac{\acute{\sigma}_{pq}+c}{\acute{\sigma_p}\acute{\sigma_q}+c},$$
-其中\(\acute{\sigma}_{pq}\) 为 \(H(p)\)与 \(H(q)\)之间的协方差, \(\acute{\sigma_p}\) 及 \(\acute{\sigma_q}\) 分别为 \(H(p)\) 与\(H(q)\)的标准差, \(c\) 是一个很小的常数避免出现零除以零的情况。\par
+其中\(\acute{\sigma}_{pq}\) 为 \(H(p)\)与 \(H(q)\)之间的协方差,计算公式为$\acute{\sigma}_{pq}=E(H(p)H(q)) - E(H(p)E(H(q))$，$E$表示均值计算。 \(\acute{\sigma_p}\) 及 \(\acute{\sigma_q}\) 分别为 \(H(p)\) 与\(H(q)\)的标准差,计算公式为$\acute{\sigma_p}=\sqrt{\frac{\sum_{i=1}^{n}(H(p)_i-E(H(p)))^2}{n}},\acute{\sigma_q}=\sqrt{\frac{\sum_{i=1}^{n}(H(q)_i-E(H(q)))^2}{n}}$，其中$n$为直方图分块数。 \(c\) 是一个很小的常数避免出现分母为零的情况。\par
  对于待填充分块 \(p\)以及搜索窗口内的分块\(q\)，当\(PSD(p,q)\)大于某门限，本章算法中门限值设置为(0.5\(\sim\)0.6), 那么认为\(p\) 和 \(q\) 在结构上存在较大差异，这也就意味着\(q\) 不可能是要寻找的最佳匹配块。这时也就没有必要再去计算他们之间的WSSD。 基于此，对于候选分块\(c\)，在计算 \(p\) 与 \(c\)之间的WSSD时，首先测试这两者之间的PSD值是否在可接受的范围之内。对于通过PSD测试的分块，再通过WSSD进一步评估分块之间的相似性，而PSD测试没有通过的分块可以直接忽略。由于\(\overline{\Omega}\) 范围内所有分块的分块GST直方图可以预先计算，且PSD 的计算复杂度远低于WSSD， 引入PSD 测试可以节省很多WSSD的冗余计算。\par
 例如，在图~\ref{chap03:fig:PSD}中， 蓝色的分块为待填充分块，绿色矩形之内为最佳匹配块搜索范围, 红色分块为通过PSD测试的候选分块，黑色分块为本章算法搜索到的最佳匹配。从图~\ref{chap03:fig:PSD}中可以看到，由于蓝色的待填充分块包含垂直方向的边缘，所有包含水平方向边缘的分块均没有通过PSD测试。因此这些分块不可能是最佳匹配分块目标，可以直接忽略。
  \begin{figure}[!htbp]
