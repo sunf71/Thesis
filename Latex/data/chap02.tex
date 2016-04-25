@@ -64,6 +64,7 @@ Wei等人~\cite{geodesicDistance}提出了一种基于背景线索的显著性�
 \par
 下面分别详细介绍各阶段的合并规则。
 \subsection{超像素分割}
+\label{ch3:sub:superpixel}
 文献\inlinecite{SLIC}提出了一种称为SLIC的超像素分割算法，可以将图像分割为若干个包含多个像素的超像素。SLIC算法的核心是根据像素间距离$D_S$,以$K$-Means方法进行聚类。其中$D_S$由Lab色彩空间距离 ($d_{lab}$)和加权欧几里得空间距离($d_{xy}$)计算得到:
 $$ d_{lab}= \sqrt{(l_k-l_i)^2+(a_k-a_i)^2+(b_k-b_i)^2} $$
 $$d_{xy}=\sqrt{(x_k-x_i)^2+(y_k-y_i)^2},$$
