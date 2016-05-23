@@ -241,6 +241,41 @@ $$ T(f_{t}(s)) = v_{3}(1-\delta(F_{t}(s)-F_{t-1}(\hat{S_{t-1}}(s))))\cdot e^{-\f
 
 为了测试本章提出算法的有效性，在Hopkins视频数据集\cite{HopKinsDataSet}中的(cars1-8, people1-2)视频、文献~\inlinecite{ParticleCVPR06}中的 (vcar, vperson)等视频上对本章提出的算法进行了测试。目前还没有一个针对移动相机拍摄视频背景减除算法的测试数据库，但是大部分研究移动相机视频背景减除技术的论文均在上述视频上进行了实验\cite{iccv2009,LimPRFloating,Multitransform,kwak2011Generalized}。由于Hopkins视频数据集并没有提供每一帧图像的正确前景结果，在实验前通过人工的方式提取每一帧中的准确前景用于算法准确性评估。\par
 在本章的实验中，根据实验中视频大小以及文献~\cite{Liu_2013ASAP}的建议,在ASAPW过程中将输入图像帧分为 $8\times8$ 的均匀网格。算法~\ref{ch4:alg:ssrg}中的区域增长门限 $threshold_{rg}$ 的值设置为每帧图像中相邻超像素颜色距离的平均值。公式~\ref{ch4:equ:mrf}中的权重参数设置为$\lambda_{1} = 0.5, \lambda_{2} = 0.35, \lambda_{3} = 0.15$。公式~\ref{ch4:equ:fgprop}中的可信度权重因子$c$ 设置为$0.75$。在所有视频的测试中均使用同样的参数配置。 \par
+为了便于观察算法的性能，在图~\ref{ch4:fig:MosegResults}中给出了部分随时间变化的多帧图像的背景减除结果。其中，(a)-(d)中分别为Cars2、Cars4、Cars5和People1视频中的第2、10、15、20、25帧图像得到的背景减除结果。
+\begin{figure}[htb]
+\begin{center}
+ \includegraphics[width=0.18\textwidth]{ch4/moseg/c2_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c2_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c2_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c2_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c2_25.jpg} \\
+(a) Cars2\\
+\includegraphics[width=0.18\textwidth]{ch4/moseg/c4_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c4_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c4_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c4_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c4_25.jpg} \\
+
+(b) Cars4\\
+\includegraphics[width=0.18\textwidth]{ch4/moseg/c5_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c5_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c5_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c5_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/c5_25.jpg} \\
+
+(c) Cars5\\
+\includegraphics[width=0.18\textwidth]{ch4/moseg/p1_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/p1_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/p1_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/p1_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch4/moseg/p1_25.jpg} \\
+
+(d) People1\\
+\end{center}
+\caption{本章算法在在Hopkins视频数据集\cite{HopKinsDataSet}中的部分结果}
+\label{ch4:fig:MosegResults}       % Give a unique label
+\end{figure}
+
 在图~\ref{ch4:fig:result}中，给出了本章算法在部分视频图像中的测试结果以及与当前领先的算法\cite{kwak2011Generalized,Multitransform,5.8s}的比较。其中图~\ref{ch4:fig:result}的第一行分别为为cars2视频的第20帧图像，cars3视频的第19帧图像， cars4视频的第40帧图像，people1视频的第40帧图像以及people2视频的第16帧图像。图~\ref{ch4:fig:result}的第二行为正确的前景结果，图~\ref{ch4:fig:result}的第三至第六行为文献~\inlinecite{Multitransform}，文献~\inlinecite{kwak2011Generalized}，文献~\inlinecite{5.8s}中算法的结果以及本章算法的结果，其中用暗色表示算法检测出的背景区域，前景区域保持原来的颜色。
 
 \begin{figure}[htb]
