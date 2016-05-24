@@ -369,16 +369,16 @@ $$F = \frac{2 \times P \times R}{(P + R)}$$
 \caption{算法速度与准确度比较}
 \begin{center}
 \label{ch4:tab:result2}
-\begin{tabular}{cccc}
+\begin{tabular}{ccccc}
 
   \toprule[1.5pt]
   % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
-  算法 & 预处理 & 速度(帧/秒) & F-Score \\
+  算法 & 预处理 & 速度(帧/秒) & F-Score & 代码实现\\
 \hline
-  \inlinecite{Multitransform}算法 & 稠密光流 & NA & 0.848 \\
-  \inlinecite{gbsuperpixel}算法 & 稠密光流 & 0.17 & 0.923 \\
-  \inlinecite{5.8s}算法 & 无  & 45& 0.419 \\
-  本章算法 & 无 & 7.65 & 0.910 \\
+  \inlinecite{Multitransform}算法 & 稠密光流 & NA & 0.848 & NA\\
+  \inlinecite{gbsuperpixel}算法 & 稠密光流 & 0.07 & 0.923 & Matlab + C\\
+  \inlinecite{5.8s}算法 & 无  & 45& 0.419 & C \\
+  本章算法 & 无 & 7.65 & 0.910 & C + CUDA\\
   \bottomrule[1.5pt]
 
 \end{tabular}
@@ -412,7 +412,7 @@ $$F = \frac{2 \times P \times R}{(P + R)}$$
 \caption{本章算法各步骤耗时，GPU实现步骤用绿色表示，视频大小为 $640\times480$}
 \label{ch4:fig:timing}       % Give a unique label
 \end{figure}
-在算法速度方面，本章算法在处理大小为 640$\times$480 的视频时可以达到8帧/秒。在实验中，使用一台配备Intel i7 CPU和NVIDIA Geforce Titan GPU 的台式电脑。本章算法各步骤的耗时情况如图~\ref{ch4:fig:timing}所示，其中绿色标示的步骤为GPU实现。本章算法使用了OpenCV~\cite{opencv_library}中提供KLT算法的GPU版本，另外本章算法的背景模型部分也是通过CUDA~\cite{CUDA}在GPU上实现。从图~\ref{ch4:fig:timing}中可以看到，由于SSRG和MRF算法均在超像素上实现，这两步计算过程也较快。基于稀疏光流和SSRG算法，本章算法可以在70ms内获得基于运动线索的粗略前景结果。本章所提算法的速度与其他算法的比较情况如表\ref{ch4:tab:result2}所示。为了公平比较，表\ref{ch4:tab:result2}中列出了各算法在文献\inlinecite{HopKinsDataSet}中提供的四个视频(cars1, cars2, people1, people2)上得到的平均F-Score值。算法的速度和F-Score值均来自于各参考文献，其中文献~\inlinecite{Multitransform}中并没有介绍该算法的速度。这四个视频的原始大小为 $640\times480$。 与文献~\inlinecite{gbsuperpixel}算法相比，本章算法的速度大约是其 45 倍，而在精度上本章算法只比文献~\inlinecite{gbsuperpixel}算法稍差。文献\inlinecite{5.8s}所提出的算法非常快，但是其准确度与表\ref{ch4:tab:result2}中的其他算法相比差距较大，使得其无法应用于对前景检测准确度要求高的场合。此外，本章算法的一个重要优势是不需要计算稠密光流等预处理步骤，可以以即插即用的方式应用于很多准实时应用场景。
+在算法速度方面，本章算法在处理大小为 640$\times$480 的视频时可以达到8帧/秒。在实验中，使用一台配备Intel i7 CPU和NVIDIA Geforce Titan GPU 的台式电脑。本章算法各步骤的耗时情况如图~\ref{ch4:fig:timing}所示，其中绿色标示的步骤为GPU实现。本章算法使用了OpenCV~\cite{opencv_library}中提供KLT算法的GPU版本，另外本章算法的背景模型部分也是通过CUDA~\cite{CUDA}在GPU上实现。从图~\ref{ch4:fig:timing}中可以看到，由于SSRG和MRF算法均在超像素上实现，这两步计算过程也较快。基于稀疏光流和SSRG算法，本章算法可以在70ms内获得基于运动线索的粗略前景结果。本章所提算法的速度与其他算法的比较情况如表\ref{ch4:tab:result2}所示。为了公平比较，表\ref{ch4:tab:result2}中列出了各算法在文献\inlinecite{HopKinsDataSet}中提供的四个视频(cars1, cars2, people1, people2)上得到的平均F-Score值。测试中，文献~\inlinecite{gbsuperpixel}的代码来自于该文作者网上公开的代码\footnote{https://github.com/jwlim/gbssplime}。其中文献~\inlinecite{Multitransform}中并没有介绍该算法的速度。这四个视频的原始大小为 $640\times480$，文献~\inlinecite{gbsuperpixel}将视频缩小为$304\times224$。 与文献~\inlinecite{gbsuperpixel}算法相比，本章算法的速度有两个数量级的优势，而在精度上本章算法只比文献~\inlinecite{gbsuperpixel}算法稍差。文献\inlinecite{5.8s}所提出的算法非常快，但是其准确度与表\ref{ch4:tab:result2}中的其他算法相比差距较大，使得其无法应用于对前景检测准确度要求高的场合。此外，本章算法的一个重要优势是不需要计算稠密光流等预处理步骤，可以以即插即用的方式应用于很多准实时应用场景。
 \subsection{实验二}
 \label{ch4:sec:sub:test2}
 在本小节中，将本章所提出算法在 CD.Net 2014数据集\cite{CD2014}进行了测试。首先，对数据集中的移动相机类视频进行了测试。在该分类中，有四个移动相机拍摄的长视频，其中包含的相机运动方式是旋转、平移和缩放(pan-tile-zoom, PTZ)，四个视频的平均长度是2158帧。在实验中使用~\ref{ch4:sec:sub:test1}节中一样的参数设置。本章算法部分检测结果以及和其他算法的比较情况如图~\ref{ch4:fig:ptzResults}所示，其中第一列视频中相机连续水平方向旋转，第二列视频中相机断续旋转，第三列视频中相机在两个位置来回切换，第四列视频中相机连续缩放。从图~\ref{ch4:fig:ptzResults}中可以看出，本章算法可以处理相机的自由运动，特别在相机连续旋转(第一列)及缩放(第四列)时得到的前景结果明显好于其他算法。\par

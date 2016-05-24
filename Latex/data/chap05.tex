@@ -191,7 +191,41 @@ S_d(x,y) = c \times D_c(x,y) + (1-c) \times D_g(x,y)
 
 \section{实验结果与分析}
 \label{ch5:sec:results}
- 通过GPU和CPU的混合编程， 使用C++语言，借助CUDA~\cite{CUDA}和OpenCV~\cite{opencv_library}实现了本文的算法。 其中， 在GPU 上实现了文献~\cite{superpixel}中的超像素分割算法，利用OpenCV提供的GPU实现完成KLT~\cite{KLT}特征点跟踪。 实验中计算机配置为Intel i7 3.5 GHz CPU， NVIDIA GeForce Titan GPU。 为了测试算法的有效性， 在Hopkins视频数据库~\cite{HopKinsDataSet}中测试了本文算法。 该数据库中的视频包含各种复杂相机运动，是移动相机背景减除研究中较为常用的测试数据集。在实验中， 超像素大小约为1600像素， 在估算相机运动时将图像平均分为$8 \times 8$ 共64个单元的网格， 本文对所有测试视频保持同样的参数。\par
+ 通过GPU和CPU的混合编程， 使用C++语言，借助CUDA~\cite{CUDA}和OpenCV~\cite{opencv_library}实现了本文的算法。 其中， 在GPU 上实现了文献~\cite{superpixel}中的超像素分割算法，利用OpenCV提供的GPU实现完成KLT~\cite{KLT}特征点跟踪。 实验中计算机配置为Intel i7 3.5 GHz CPU， NVIDIA GeForce Titan GPU。 为了测试算法的有效性， 在Hopkins视频数据库~\cite{HopKinsDataSet}中测试了本文算法。 该数据库中的视频包含各种复杂相机运动，是移动相机背景减除研究中较为常用的测试数据集。在实验中， 超像素大小约为1600像素， 在估算相机运动时将图像平均分为$8 \times 8$ 共64个单元的网格， 本文对所有测试视频保持同样的参数。
+ 为了便于观察算法的性能，在图~\ref{ch5:fig:MosegResults}中给出了部分随时间变化的多帧图像的背景减除结果。其中，(a)-(d)中分别为Cars2、Cars6、People1和People2视频中的第2、10、15、20、25帧图像得到的背景减除结果。\par
+ \begin{figure}[htb]
+\begin{center}
+ \includegraphics[width=0.18\textwidth]{ch5/moseg/c2_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c2_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c2_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c2_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c2_25.jpg} \\
+(a) Cars2\\
+\includegraphics[width=0.18\textwidth]{ch5/moseg/c6_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c6_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c6_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c6_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/c6_25.jpg} \\
+
+(b) Cars6\\
+\includegraphics[width=0.18\textwidth]{ch5/moseg/p1_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p1_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p1_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p1_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p1_25.jpg} \\
+
+(c) People1\\
+\includegraphics[width=0.18\textwidth]{ch5/moseg/p2_02.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p2_10.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p2_15.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p2_20.jpg}
+  \includegraphics[width=0.18\textwidth]{ch5/moseg/p2_25.jpg} \\
+
+(d) People2\\
+\end{center}
+\caption{本章算法在在Hopkins视频数据集\cite{HopKinsDataSet}中的部分结果}
+\label{ch5:fig:MosegResults}       % Give a unique label
+\end{figure}
 将本文算法与文献~\inlinecite{5.8s,kwak2011Generalized}中的算法进行了比较，部分结果如图~\ref{ch5:fig:comparison}所示。图~\ref{ch5:fig:comparison}(a)中分别为Hopkins视频数据库中Cars1视频的第6帧， Cars3 视频的第11帧，Cars8视频的第16帧， People1视频的第19帧和Peopel2视频的第16帧。 图~\ref{ch5:fig:comparison}(b)所示为图~\ref{ch5:fig:comparison}(a)中视频帧的正确前景结果， 图~\ref{ch5:fig:comparison}(c)所示为文献~\inlinecite{kwak2011Generalized}算法的结果， 图~\ref{ch5:fig:comparison}(d)所示为文献~\inlinecite{5.8s}算法结果，  图~\ref{ch5:fig:comparison}(e)所示为本章算法结果。
 \begin{figure}[ht]
   \centering
