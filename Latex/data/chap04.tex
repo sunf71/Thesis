@@ -15,7 +15,7 @@
 对于基于像素外观的线索，本章算法引入了与文献~\inlinecite{Barnich2011ViBe,pbas,subsenseTIP}类似的基于背景像素采样的无参数的背景模型。根据文献
  ~\inlinecite{CD2014}的报道，在静止相机视频背景减除算法准确率比较中，基于采样一致模型的背景减除算法要优于基于混合高斯模型(gaussian mixture model, GMM)的算法。据作者所知，基于采样一致模型的背景模型还没有被用于移动相机视频背景减除技术当中。主要的原因在于基于采样的模型对运动补偿的误差非常敏感。由于本章算法利用ASAPW来准确的补偿相机运动，使得可以使用基于采样模型的背景模型。在本章算法中，对文献~\inlinecite{subsenseTIP}中提出的背景模型进行了改进，使得其更加适用于移动相机情况。此外，本章算法中通过CUDA~\cite{CUDA}并行化将该背景模型在GPU上进行了实现，大大提高了计算速度。\par
 
- 在本章提出算法的最后，在根据运动线索、外观线索得到的粗略结果以及前一帧结果的基础上建立基于超像素的MRF优化框架。每个超像素的最终标记（前景或者背景）可以通过图割算法\cite{graphcut04}求解能量最小化问题得到。实验结果显示本章提出的算法在处理速度更快的情况下达到了与其他先进算法类似的准确度。
+ 在本章提出算法的最后，在根据运动线索、外观线索得到的粗略结果以及前一帧结果的基础上建立基于超像素的MRF优化框架。每个超像素的最终标记（前景或者背景）可以通过图割算法\cite{graphcut04}求解能量最小化问题得到。实验结果显示本章提出的算法达到了与其他先进算法类似的准确度，且相比而言速度更快。
 
 
 综上所述，本章所提出的针对移动相机的视频背景减除快速算法的主要特点和优势在于：
@@ -321,7 +321,7 @@ $$ T(f_{t}(s)) = v_{3}(1-\delta(F_{t}(s)-F_{t-1}(\hat{S_{t-1}}(s))))\cdot e^{-\f
 \label{ch4:fig:result}       % Give a unique label
 \end{figure}
 
-文献~\inlinecite{kwak2011Generalized,Multitransform}的结果来自于文献~\inlinecite{Multitransform}，文献~\inlinecite{5.8s} 的源代码来自于作者的个人网站\footnote{https://sites.google.com/site/homekmyi/}。从图~\ref{ch4:fig:result}中可以看到，本文算法与文献~\inlinecite{Multitransform}算法提取的前景相对于文献\cite{kwak2011Generalized,5.8s}的结果 要更加准确。为了进行定量分析，使用提取的前景像素与正确值之间比较得到的精度、召回率以及F-Score指标来评估算法的有效性。其中精度$P$定义为:
+文献~\inlinecite{kwak2011Generalized,Multitransform}的结果来自于文献~\inlinecite{Multitransform}，文献~\inlinecite{5.8s} 的源代码来自于作者的个人网站\footnote{https://sites.google.com/site/homekmyi/}。从图~\ref{ch4:fig:result}中可以看到，本文算法与文献~\inlinecite{Multitransform}算法提取的前景相对于文献\cite{kwak2011Generalized,5.8s}的结果 要更加准确。为了进行定量分析，使用提取的前景像素与正确值之间比较得到的精度、召回率以及F-Score指标来评估算法的有效性~\cite{CD2014}。其中精度$P$定义为:
 $$ P = \frac{TP}{(TP+FP)}$$
 召回率$R$定义为：
 $$R = \frac{TP}{(TP+FN)}$$

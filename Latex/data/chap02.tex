@@ -323,7 +323,7 @@ $$ S(I) = \frac{\sum_{i=1}^{P}PropCon(i) \times \sum_{j=1}^{k_i}PropSal(i,j)}{\s
   \caption{ASD数据集部分图像显著性检测结果比较}
   \label{fig:chap2:comp2}
 \end{figure}
-为了定量衡量算法的准确性，将显著性检测结果进行二值化后得到的显著性对象与数据集中提供的正确结果进行对比，采用通用的F-Measure值指标来比较算法准确性，其定义为：
+为了定量衡量算法的准确性，将显著性检测结果进行二值化后得到的显著性对象与数据集中提供的正确结果进行对比，采用通用的F-Measure值指标来比较算法准确性~\cite{frequenyTuned}，其定义为：
 $$F_{\beta} = \frac{(1+\beta^2)Precision \times Recall}{\beta^2 \times Precision + Recall},$$
 其中$Precision$为精度，$Recall$表示召回率，$\beta^2=0.3$. \par
 
